@@ -1,0 +1,50 @@
+{
+  "name": "mnca",
+  "version": "0.0.0",
+  "description": "MNCA is not a chat app",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "vite build client",
+    "dev": "vite client",
+    "preview": "vite preview client",
+    "start": "node .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marcthe12/mnca.git"
+  },
+  "keywords": [
+    "chat"
+  ],
+  "author": {
+    "name": "Marc Pervaz Boocha",
+    "email": "marc.pervaz@btech.christuniversity.in"
+  },
+  "contributors": [
+    {
+      "name": "Christy Jose",
+      "email": "christy.jose@btech.christuniversity.in"
+    },
+    {
+      "name": "Milton Thachil",
+      "email": "milton.thachil@btech.christuniversity.in"
+    }
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/marcthe12/mnca/issues"
+  },
+  "homepage": "https://github.com/marcthe12/mnca#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "vite": "^4.3.9"
+  }
+}
