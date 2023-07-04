@@ -1,5 +1,10 @@
 #!/usr/bin/env node
 
-import express from "express"
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+import main from './server/index.js';
 
-console.log("Hello World")
+const filename = fileURLToPath(import.meta.url);
+const base_dir = dirname(filename);
+
+await main(base_dir);

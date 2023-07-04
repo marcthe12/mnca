@@ -5,11 +5,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "build": "vite build client",
-    "dev": "vite client",
-    "preview": "vite preview client",
-    "start": "node .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "vite build",
+    "dev": "vite",
+    "preview": "vite preview",
+    "start": "node ."
   },
   "repository": {
     "type": "git",
@@ -39,7 +38,8 @@
   "homepage": "https://github.com/marcthe12/mnca#readme",
   "dependencies": {
     "express": "^4.18.2",
-    "mongoose": "^7.3.1"
+    "mongoose": "^7.3.1",
+    "morgan": "^1.10.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.0.1",
