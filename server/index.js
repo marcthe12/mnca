@@ -14,6 +14,9 @@ export default async function (base_dir) {
   });
 
   const server = http.createServer(app);
+  server.on("listening",function(){
+    console.log("http:://localhost:3000")
+  })
 
   server.listen({
     port: 3000,
