@@ -8,7 +8,9 @@ export default async function (base_dir) {
 
   app.use(morgan(':remote-addr :method :url :http-version :status :response-time ms'));
 
-  app.use(express.static(path.join(base_dir, 'dist')));
+
+  app.use('/ui', express.static(path.join(base_dir, 'dist')));
+  app.use('/ui', path.join(base_dir, 'dist', 'index.html'));
   app.get('/favicon.ico', (_req, res) => {
     res.status(204).send();
   });
