@@ -1,28 +1,33 @@
-import express from 'express';
-import morgan from 'morgan';
-import http from 'http';
-import path from 'path';
+import express from 'express'
+import morgan from 'morgan'
+import http from 'http'
+import client from './client.js'
+import api from './api.js'
 
-export default async function (base_dir) {
-  const app = express();
+export default async function(base_dir) {
+  const app = express()
 
-  app.use(morgan(':remote-addr :method :url :http-version :status :response-time ms'));
+  app.use(morgan(':remote-addr :method :url :http-version :status :response-time ms'))
 
+  app.get('/', async (_req, res) => {
+    res.redirect('/ui')
+  })
 
-  app.use('/ui', express.static(path.join(base_dir, 'dist')));
-  app.use('/ui', path.join(base_dir, 'dist', 'index.html'));
-  app.get('/favicon.ico', (_req, res) => {
+  app.use('/ui', client(base_dir))
+
+  app.use('/', api())
+
+  app.get('/favicon.ico', async (_req, res) => {
     res.status(204).send();
-  });
+  })
 
   const server = http.createServer(app);
-  server.on("listening",function(){
-    console.log("http:://localhost:3000")
-  })
 
   server.listen({
     port: 3000,
-  });
+  }, async function() {
+    console.log("http:://localhost:3000")
+  })
 
   process.on('exit', () => server.close());
 }
