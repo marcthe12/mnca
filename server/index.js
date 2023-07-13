@@ -4,7 +4,7 @@ import http from 'http'
 import client from './client.js'
 import api from './api.js'
 
-export default async function(base_dir) {
+export default async function(base_dir, config) {
   const app = express()
 
   app.use(morgan(':remote-addr :method :url :http-version :status :response-time ms'))
@@ -24,9 +24,11 @@ export default async function(base_dir) {
   const server = http.createServer(app);
 
   server.listen({
-    port: 3000,
+    port: config.port,
+    host: config.host,
   }, async function() {
-    console.log("http:://localhost:3000")
+    const addr = this.address()
+    console.log(`Listening on ${addr ? typeof addr === "string" ? addr : `${addr.port} on ${addr.address}` : "Unknown Socket"}`)
   })
 
   process.on('exit', () => server.close());
