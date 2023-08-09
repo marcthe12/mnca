@@ -1,7 +1,7 @@
-import { Header } from '../component/Header'
-import { MessageBox } from '../component/MessageBox'
-import { MainArea } from '../component/MainArea'
-import { SendBox } from '../component/SendBox'
+import { Header } from '../components/Header'
+import { MessageBox } from '../components/MessageBox'
+import { MainArea } from '../components/MainArea'
+import { SendBox } from '../components/SendBox'
 
 export default function Home() {
   return (
