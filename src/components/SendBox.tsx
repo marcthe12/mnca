@@ -2,7 +2,7 @@ export function SendBox() {
   return (
     <>
       <textarea></textarea>
-      <button>send</button>
+      <button className="rounded-full bg-sky-500 p-1">send</button>
     </>
   );
 }
