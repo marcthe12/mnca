@@ -1,31 +1,32 @@
-import React from 'react';
-import { MainArea } from './MainArea';
+'use client'
+
+import { useContext, useState } from 'react';
 import { MessageBox } from './MessageBox';
 import { SendBox } from './SendBox';
 
-const MainChatArea: React.FC = () => {
-  const messageData = {
-    name: 'John',
-    children: 'Hello there!',
-    date: new Date(), // Create a new Date object
-  };
+interface message {
+  name: string,
+  message: string,
+  date: Date,
+}
 
-  return (
-    <div className="main-chat-area flex">
-      <MainArea>
-        <div className="flex flex-col h-full">
-          <div className="flex-none">
-            <MessageBox name={messageData.name} date={messageData.date}>
-              {messageData.children}
-            </MessageBox>
-          </div>
-          <div className="flex-grow">
-            <SendBox />
-          </div>
-        </div>
-      </MainArea>
-    </div>
-  );
-};
+export default function MainChatArea({ label, isactive }: { label: string, isactive: boolean }) {
+  const user = "Marc"
+  const [messages, setMessages] = useState<message[]>([]);
 
-export default MainChatArea;
+  function SendHandler(message: string) {
+    setMessages([...messages, { name: user, message, date: new Date() }])
+  }
+
+  return isactive ? (
+    <main className="grid">
+      <h2>{label}</h2>
+      {messages.map(message =>
+        <MessageBox key={crypto.randomUUID()} name={message.name} date={message.date}>
+          {message.message}
+        </MessageBox>
+      )}
+      <SendBox onSend={SendHandler} />
+    </main>
+  ) : (<></>);
+}

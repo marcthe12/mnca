@@ -1,8 +1,19 @@
-export function SendBox() {
+'use client';
+
+import { useState } from "react";
+
+export function SendBox({onSend}: {onSend: (message: string) => void}) {
+
+  const [messageContent, setMessageContent] = useState('')
+
+  function handleClick() {
+    onSend(messageContent);
+  }
+
   return (
-    <>
-      <textarea></textarea>
-      <button className="rounded-full bg-sky-500 p-1">send</button>
-    </>
+    <div>
+      <textarea value={messageContent} onChange={e => setMessageContent(e.target.value)} ></textarea>
+      <button className="rounded-full bg-sky-500 p-1" onClick={handleClick}>send</button>
+    </div>
   );
 }
