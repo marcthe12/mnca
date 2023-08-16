@@ -13,8 +13,18 @@ export const authOption: NextAuthOptions = {
             }
         })
     ],
-    secret: "V+moVCbTt/Tar0uLa4sXkkf3vqaJ8F3VGdo0lRRoL9E="
+    secret: "V+moVCbTt/Tar0uLa4sXkkf3vqaJ8F3VGdo0lRRoL9E=",
+    callbacks: {
+        session({ token, session }) {
+            if (session.user) {
+                session.user.id = token.id;
+            }
+
+            return session;
+        }
+    }
 }
+
 
 const handler = NextAuth(authOption)
 

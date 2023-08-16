@@ -5,7 +5,7 @@ type MessageData = {
 };
 
 export function MessageBox({ name, children, date }: MessageData): JSX.Element {
-  return <div className="bg-gray-50">
+  return <div className="bg-gray-250">
     <p>{name}</p>
     <p>{children}</p>
     <p><time>{date.toUTCString()}</time></p>
