@@ -11,7 +11,6 @@ export default async function Home() {
 
   return (
     <>
-      <Header />
       {session !== null ? <ContextHandlers /> : <LogoutPage />}
     </>
   )
