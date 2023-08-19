@@ -6,8 +6,8 @@ export function SendBox({onSend}: {onSend: (message: string) => void}) {
 
   const [messageContent, setMessageContent] = useState('')
 
-  function handleClick() {
-    onSend(messageContent);
+  async function handleClick() {
+    await onSend(messageContent);
   }
 
   return (

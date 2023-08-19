@@ -4,41 +4,46 @@ import { useState, useEffect } from 'react';
 import { MessageBox } from './MessageBox';
 import { SendBox } from './SendBox';
 import { useSession } from "next-auth/react"
-import { saveGroupData, fetchGroupData } from '../indexStorage';
+import { useIndexDB, type group, type message} from "./IndexDBProvider";
 
-interface message {
-  name: string,
-  message: string,
-  date: Date,
-}
-
-export default function MainChatArea({ label, isactive }: { label: string, isactive: boolean }) {
+export default function MainChatArea({ group, isactive }: { group: group, isactive: boolean }) {
   const [messages, setMessages] = useState<message[]>([]);
   const session = useSession()
+  const db = useIndexDB()
 
-  useEffect(() => {
-    if (session.data?.user) {
-      fetchGroupData(session.data.user.name, label).then((result) => {
-        setMessages(result);
-      });
-    }
-  }, [session.data, label]);
-
-  function SendHandler(message: string) {
-    const NewMessage = [...messages, { name: session.data.user.name, message, date: new Date() }]
-    setMessages(NewMessage)
-    saveGroupData(session.data.user.name, label, NewMessage)
+  async function ReloadMessage() {
+    const message = await db?.getAllFromIndex('messages', 'groupIndex', group.groupId) ?? [];
+    setMessages(message);
   }
+
+  async function SendHandler(message: string) {
+    if (session.status === "authenticated" && db !== null) {
+      db.add('messages', {
+        name: session.data.user?.name ?? "",
+        message,
+        date: new Date(),
+        groupId: group.groupId,
+        messageId: crypto.randomUUID() 
+      }) 
+      await ReloadMessage();
+    } else {
+      throw Error("session")
+    }
+  }
+
+  useEffect(() => { 
+    ReloadMessage()
+  }, [db, messages])
 
   return isactive ? (
     <main className="grid">
-      <h2>{label}</h2>
+      <h2>{group.name}</h2>
       {messages.map(message =>
-        <MessageBox key={crypto.randomUUID()} name={message.name} date={message.date}>
-          {message.message}
-        </MessageBox>
+        <MessageBox key={message.messageId} message={message} />
       )}
       <SendBox onSend={SendHandler} />
     </main>
   ) : (<></>);
+
+
 }

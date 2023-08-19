@@ -1,6 +1,6 @@
 import { Header } from '@/components/Header'
 import { getServerSession } from "next-auth/next";
-import UserMenu from '@/components/UserMenu';
+import ContextHandlers from '@/components/ContextHandlers';
 import LogoutPage from './LogoutPage';
 import { authOption } from './api/auth/[...nextauth]/route';
 
@@ -12,7 +12,7 @@ export default async function Home() {
   return (
     <>
       <Header />
-      {session !== null ? <UserMenu /> : <LogoutPage />}
+      {session !== null ? <ContextHandlers /> : <LogoutPage />}
     </>
   )
 }
