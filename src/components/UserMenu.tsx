@@ -57,12 +57,14 @@ function TabButton({ onClick, group }: { onClick: () => void, group: group }): J
 function Username({ onGroupCreate }: { onGroupCreate: (name: string) => void }): JSX.Element {
   const session = useSession()
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
   function handleSignOut() {
     signOut();
   }
 
   async function handleCreateGroup() {
-    onGroupCreate("name")
+    //onGroupCreate("name")
+    setShowCreateGroupModal(true);
   }
 
   if (session.status !== "authenticated") {
@@ -113,6 +115,60 @@ function Username({ onGroupCreate }: { onGroupCreate: (name: string) => void }):
               >
                 New Group
               </button>
+
+              {/* Modal */}
+              {showCreateGroupModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                  <div className="bg-white w-96 p-6 rounded-lg shadow-md">
+                    {/* Modal content */}
+                    <h2 className="text-xl font-semibold mb-4">Create a New Group</h2>
+                    <div className="mb-4">
+                      <label htmlFor="groupName" className="block font-medium mb-1">
+                        Group Name
+                      </label>
+                      <input
+                        id="groupName"
+                        type="text"
+                        className="w-full border rounded-md p-2"
+                        placeholder="Enter group name"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label htmlFor="groupId" className="block font-medium mb-1">
+                        Group ID
+                      </label>
+                      <input
+                        id="groupId"
+                        type="text"
+                        className="w-full border rounded-md p-2"
+                        placeholder="Enter group ID"
+                      />
+                    </div>
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => {
+                          setShowCreateGroupModal(false);
+                        }}
+                        className="px-4 py-2 bg-gray-300 rounded-md mr-2"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowCreateGroupModal(false);
+                          const groupName = document.getElementById("groupName") as HTMLInputElement;
+                          const groupId = document.getElementById("groupId") as HTMLInputElement;
+                          onGroupCreate(groupName.value, groupId.value);
+                        }}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-md"
+                      >
+                        Create
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <button
                 onClick={handleSignOut}
                 className="block w-full px-4 py-2 text-gray-800 hover:bg-gray-100 text-left"
