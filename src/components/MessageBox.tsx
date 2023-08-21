@@ -1,10 +1,10 @@
 import type { message } from "./IndexDBProvider";
 
-export function MessageBox({ message }: { message: message }): JSX.Element {
+export default function({ message }: { message: message }): JSX.Element {
   const {name, message: msg,date} = message;
-  return <div className="bg-gray-250">
-    <p>{name}</p>
+  return <section className="bg-sky-500 m-5 w-1/2 p-4">
+    <h3>{name}</h3>
     <p>{msg}</p>
-    <p><time>{date.toUTCString()}</time></p>
-  </div>;
+    <small><time>{date.toUTCString()}</time></small>
+  </section>;
 }

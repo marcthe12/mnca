@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { MessageBox } from './MessageBox';
-import { SendBox } from './SendBox';
+import MessageBox from './MessageBox';
+import SendBox from './SendBox';
 import { useSession } from "next-auth/react"
-import { useIndexDB, type group, type message} from "./IndexDBProvider";
+import { useIndexDB, type group, type message } from "./IndexDBProvider";
+import Hide from './Hide';
 
-export default function MainChatArea({ group, isactive }: { group: group, isactive: boolean }) {
+export default function ({ group, isactive }: { group: group, isactive: boolean }) {
   const [messages, setMessages] = useState<message[]>([]);
   const session = useSession()
   const db = useIndexDB()
@@ -23,27 +24,33 @@ export default function MainChatArea({ group, isactive }: { group: group, isacti
         message,
         date: new Date(),
         groupId: group.groupId,
-        messageId: crypto.randomUUID() 
-      }) 
+        messageId: crypto.randomUUID()
+      })
       await ReloadMessage();
     } else {
       throw Error("session")
     }
   }
 
-  useEffect(() => { 
+  useEffect(() => {
     ReloadMessage()
   }, [db, messages])
 
-  return isactive ? (
-    <main className="grid">
-      <h2>{group.name}</h2>
-      {messages.map(message =>
-        <MessageBox key={message.messageId} message={message} />
-      )}
-      <SendBox onSend={SendHandler} />
-    </main>
-  ) : (<></>);
+  return <Hide show={isactive}>
+    <main className="grid grid-rows-[auto,1fr,auto] h-full">
+      <div className="grid-row-1 bg-gray-500 p-4">
+        <h2>{group.name}</h2>
+      </div>
+      <div className='grid-row-2 overflow-y-auto'>
+        {messages.map(message =>
+          <MessageBox key={message.messageId} message={message} />
+        )}
+      </div>
+      <div className='grid-row-3 p-4'>
+        <SendBox onSend={SendHandler} />
+      </div>
+    </main >
+  </Hide >;
 
 
 }

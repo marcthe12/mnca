@@ -1,13 +1,13 @@
 "use client";
 
 import { SessionProvider } from "next-auth/react"
-import UserMenu from "./UserMenu";
+import MainArea from "./MainArea";
 import { IndexDBProvider } from "./IndexDBProvider";
 
 export default function () {
     return <SessionProvider>
         <IndexDBProvider>
-            <UserMenu />
+            <MainArea />
         </IndexDBProvider>
     </SessionProvider>
 }
