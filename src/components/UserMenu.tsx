@@ -53,7 +53,7 @@ export default function({ onGroupCreate }: { onGroupCreate: (name: string) => vo
             <ModalContent onClose={close} onCreate={handleCreateGroup} />
           </Modal>
           <button
-            onClick={() => signOut}
+            onClick={() => signOut()}
             className="block w-full px-4 py-2 text-gray-800 hover:bg-gray-100 text-left"
             role="menuitem"
           >
