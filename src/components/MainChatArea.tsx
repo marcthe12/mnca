@@ -24,7 +24,7 @@ export default function ({ group, isactive }: { group: group, isactive: boolean 
         message,
         date: new Date(),
         groupId: group.groupId,
-        messageId: crypto.randomUUID()
+        messageId: crypto.getRandomValues(new Uint8Array(8)).toString()
       })
       await ReloadMessage();
     } else {

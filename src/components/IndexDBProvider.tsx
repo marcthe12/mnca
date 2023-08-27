@@ -44,6 +44,7 @@ export function useIndexDB() {
 export function IndexDBProvider({ children }: { children: JSX.Element; }) {
     const session = useSession();
     const [db, setDB] = useState<IDBPDatabase<MyDB> | null>(null);
+    const [rtc, setRTC] = useState<RTCPeerConnection | null>(null);
     useEffect(() => {
         (async () => {
             if (session.status === "authenticated") {

@@ -19,7 +19,7 @@ export default function () {
   async function GroupAddHandler(name: string) {
     db?.add('groups', {
       name,
-      groupId: crypto.randomUUID(),
+      groupId: crypto.getRandomValues(new Uint8Array(8)).toString(),
     })
     await GroupList();
   }
