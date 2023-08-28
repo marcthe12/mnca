@@ -1,4 +1,3 @@
-import { Header } from '@/components/Header'
 import { getServerSession } from "next-auth/next";
 import ContextHandlers from '@/components/ContextHandlers';
 import LogoutPage from './LogoutPage';
