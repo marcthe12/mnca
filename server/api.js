@@ -1,8 +1,6 @@
 import { Router } from "express"
-import jwt from "jsonwebtoken";
 import { User } from "./User.js"
-
-const secretKey = process.env.SECRET;
+import Token from "./Token.js"
 
 async function register(req, res) {
         const { username, password } = req.body
@@ -17,7 +15,7 @@ async function login(req, res) {
     const user = await User.findOne({ username });
     if (user) {
         if (user.validPassword(password)) { 
-            const token = jwt.sign({ user: username }, secretKey, { expiresIn: '1800s' })
+            const token = Token.sign({ user: username }, { expiresIn: '1800s' })
             return res.status(200).json({ message: "Login Sucessful", token , username})
         } 
         else { 
@@ -29,7 +27,6 @@ async function login(req, res) {
         res.status(401).send({ message: 'Invalid username'});
     }
 };
-
 
 export default function() {
 

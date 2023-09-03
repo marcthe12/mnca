@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react"
+import { io } from "socket.io-client"
 
 const UserContex = createContext(null)
 
@@ -56,7 +57,6 @@ export function UserContext({ children }) {
     useEffect(() => {
         const newToken = localStorage.getItem("token")
         setTokenData(newToken)
-        console.log(token)
     }, [])
 
     return <UserContex.Provider value={{

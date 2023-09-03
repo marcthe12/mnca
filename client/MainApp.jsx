@@ -24,9 +24,5 @@ function Logout() {
 export default function MainApp() {
   const user = useUser()
 
-  return user.token ?(
-    <IndexDBProvider>
-      <MainArea />
-    </IndexDBProvider>) :
-    <Logout />
+  return user.token ? <MainArea /> : <Logout />
 }

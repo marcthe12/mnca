@@ -13,13 +13,16 @@ export function IndexDBProvider({ children }) {
     const [db, setDB] = useState(null)
     useEffect(() => {
         (async () => {
-            const result = await openDB(user.data.body.user, 3, {
+            if (db){
+                db.close()
+            }
+            const result = user.token ? await openDB(user.data.body.user, 3, {
                 upgrade(db) {
                     db.createObjectStore('groups', { keyPath: 'groupId' })
                     const messageStore = db.createObjectStore('messages', { keyPath: 'messageId' })
                     messageStore.createIndex('groupIndex', 'groupId', { unique: false })
                 }
-            })
+            }) : null
             setDB(result)
         })()
     }, [user])
