@@ -4,7 +4,7 @@ import TabButton from './TabButton.jsx'
 import UserMenu from './UserMenu.jsx'
 import { useIndexDB } from './IndexDBProvider.jsx'
 
-export default function () {
+export default function MainArea() {
   const db = useIndexDB()
   const [activeTab, setActiveTab] = useState(0)
   const [groups, setGroups] = useState([])

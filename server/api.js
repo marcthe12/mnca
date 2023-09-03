@@ -15,7 +15,7 @@ async function login(req, res) {
     const user = await User.findOne({ username });
     if (user) {
         if (user.validPassword(password)) { 
-            const token = Token.sign({ user: username }, { expiresIn: '1800s' })
+            const token = Token.sign({ user: username })
             return res.status(200).json({ message: "Login Sucessful", token , username})
         } 
         else { 

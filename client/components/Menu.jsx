@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Hide from './Hide';
 
-export default function({ children }) {
+export default function Menu({ children }) {
   const [menuOpen, setMenuOpen] = useState(false);
   return <>
     <button

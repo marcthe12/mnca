@@ -1,3 +1,3 @@
-export default function({ children, show }) {
+export default function Hide({ children, show }) {
   return show ? children : (<></>);
 }

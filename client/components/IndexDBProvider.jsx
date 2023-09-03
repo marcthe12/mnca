@@ -13,9 +13,6 @@ export function IndexDBProvider({ children }) {
     const [db, setDB] = useState(null)
     useEffect(() => {
         (async () => {
-            if (db){
-                db.close()
-            }
             const result = user.token ? await openDB(user.data.body.user, 3, {
                 upgrade(db) {
                     db.createObjectStore('groups', { keyPath: 'groupId' })
@@ -24,6 +21,7 @@ export function IndexDBProvider({ children }) {
                 }
             }) : null
             setDB(result)
+		return () => db.close()
         })()
     }, [user])
 

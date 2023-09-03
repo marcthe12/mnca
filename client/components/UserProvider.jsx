@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react"
+import api from "../api.js"
 import { io } from "socket.io-client"
 
 const UserContex = createContext(null)
@@ -7,7 +8,7 @@ export function useUser() {
     return useContext(UserContex)
 }
 
-function jwtdecode(token) {
+function JWTdecode(token) {
     const list = token.split(".")
     return {
         header: JSON.parse(atob(list[0])),
@@ -17,52 +18,34 @@ function jwtdecode(token) {
 }
 
 export function UserContext({ children }) {
-    const [token, setToken] = useState("")
+    const [token, setToken] = useState(localStorage.getItem("token"))
 
-    function setTokenData(newToken) {
-        if (newToken) {
-            setToken(newToken)
-        } else {
-            setToken("")
-        }
-    }
+    const loginRequest = api('/login')
 
     async function signIn(username, password) {
-        const response = await fetch('/login', {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(
-                {
-                    username,
-                    password,
-                })
-        })
-
-        if (response.error) {
-            console.error('Registration failed:', response.statusText)
-        } else {
-            const data = await response.json()
-            localStorage.setItem('token', data.token)
-            setTokenData(data.token)
-        }
+        const data = await loginRequest({username, password})
+        setToken(data.token)
     }
 
     async function signOut() {
-        localStorage.removeItem('token')
-        setTokenData(null)
+        setToken()
     }
 
     useEffect(() => {
-        const newToken = localStorage.getItem("token")
-        setTokenData(newToken)
-    }, [])
+	    if (token){
+		localStorage.setItem("token", token)
+	    } else {
+		localStorage.removeItem("token")
+	    }
+    }, [token])
 
     return <UserContex.Provider value={{
         get data() {
-            return this.token ? jwtdecode(this.token) : null
-        }, token,
+            return this.token ? JWTdecode(this.token) : null
+        }, 
+	get token (){
+            return token
+	},
         signIn,
         signOut
     }}>{children}</UserContex.Provider>
