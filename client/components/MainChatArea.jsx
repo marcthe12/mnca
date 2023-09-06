@@ -4,16 +4,15 @@ import SendBox from "./SendBox.jsx"
 import Hide from "./Hide.jsx"
 import {useIndexDB} from "./IndexDBProvider.jsx"
 import {useUser} from "./UserProvider.jsx"
+import AddUserModal from './AddUserModal.jsx';
 
 export default function MainChatArea ({group, isactive}) {
-
-	const [
-			messages,
-			setMessages
-		] = useState([]),
-	 user = useUser(),
-	 db = useIndexDB()
-
+  const [messages, setMessages] = useState([])
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+  const user = useUser()
+  const db = useIndexDB()
+	
 	async function ReloadMessage () {
 
 		const message = await db?.getAllFromIndex(
@@ -66,6 +65,4 @@ export default function MainChatArea ({group, isactive}) {
 			</div>
 		</main >
 	</Hide >
-
-
 }
