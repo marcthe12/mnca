@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 
 export default function AddUserModal({ isOpen, onClose, onAddUser }) {
 	const [newUser, setNewUser] = useState("")

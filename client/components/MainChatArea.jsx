@@ -51,7 +51,18 @@ export default function MainChatArea ({group, isactive}) {
 			messages
 		]
 	)
-
+	const toggleMenu = () => {
+		setIsMenuOpen(!isMenuOpen);
+	  }
+	
+	  const toggleAddUserModal = () => {
+		setIsAddUserModalOpen(!isAddUserModalOpen);
+	  };
+	  const handleAddUser = (newUser) => {
+		console.log(`Adding user: ${newUser}`);
+		setIsAddUserModalOpen(false);
+	  };
+	
 	return <Hide show={isactive}>
 		<main className="grid grid-rows-[auto,1fr,auto] h-full">
 			<div className="grid-row-1 bg-primary-bg p-4">

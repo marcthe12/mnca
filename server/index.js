@@ -7,9 +7,7 @@ import connect, {auth} from "./connect.js"
 export default async function () {
 
 	await mongoose.connect(process.env.MONGO_URL)
-
 	const app = createApp()
-
 	const server = http.createServer(app)
 	const io = new Server(server)
 	io.use(auth)

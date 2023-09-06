@@ -7,7 +7,7 @@ await init()
 await (await import("./server/index.js")).default()
 
 async function init () {
-	const currentModuleUrl = import.meta.url,
+	const currentModuleUrl = import.meta.url
 	const currentModulePath = fileURLToPath(currentModuleUrl)
 	const currentDirectory = dirname(currentModulePath)
 	chdir(currentDirectory)
