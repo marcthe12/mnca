@@ -12,6 +12,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "cross-env NODE_ENV=production node .",
+    "lint": "eslint . --fix",
     "clean": "del-cli ./dist"
   },
   "repository": {
