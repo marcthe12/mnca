@@ -1,52 +1,83 @@
-import { createContext, useContext, useEffect, useState } from "react"
+import {createContext, useContext, useEffect, useState} from "react"
 import api from "../api.js"
-import { io } from "socket.io-client"
 
 const UserContex = createContext(null)
 
-export function useUser() {
-    return useContext(UserContex)
+export function useUser () {
+
+	return useContext(UserContex)
+
 }
 
-function JWTdecode(token) {
-    const list = token.split(".")
-    return {
-        header: JSON.parse(atob(list[0])),
-        body: JSON.parse(atob(list[1])),
-        signature: list[2]
-    }
+function JWTdecode (token) {
+
+	const list = token.split(".")
+	return {
+		"header": JSON.parse(atob(list[0])),
+		"body": JSON.parse(atob(list[1])),
+		"signature": list[2]
+	}
+
 }
 
-export function UserContext({ children }) {
-    const [token, setToken] = useState(localStorage.getItem("token"))
+export function UserContext ({children}) {
 
-    const loginRequest = api('/login')
+	const [
+			token,
+			setToken
+		] = useState(localStorage.getItem("token")),
 
-    async function signIn(username, password) {
-        const data = await loginRequest({username, password})
-        setToken(data.token)
-    }
+	 loginRequest = api("/login")
 
-    async function signOut() {
-        setToken()
-    }
+	async function signIn (username, password) {
 
-    useEffect(() => {
-	    if (token){
-		localStorage.setItem("token", token)
-	    } else {
-		localStorage.removeItem("token")
-	    }
-    }, [token])
+		const data = await loginRequest({username,
+			password})
+		setToken(data.token)
 
-    return <UserContex.Provider value={{
-        get data() {
-            return this.token ? JWTdecode(this.token) : null
-        }, 
-	get token (){
-            return token
-	},
-        signIn,
-        signOut
-    }}>{children}</UserContex.Provider>
+	}
+
+	async function signOut () {
+
+		setToken()
+
+	}
+
+	useEffect(
+		() => {
+
+			if (token) {
+
+				localStorage.setItem(
+					"token",
+					token
+				)
+
+			} else {
+
+				localStorage.removeItem("token")
+
+			}
+
+		},
+		[token]
+	)
+
+	return <UserContex.Provider value={{
+		get "data" () {
+
+			return this.token
+				? JWTdecode(this.token)
+				: null
+
+		},
+		get "token" () {
+
+			return token
+
+		},
+		signIn,
+		signOut
+	}}>{children}</UserContex.Provider>
+
 }

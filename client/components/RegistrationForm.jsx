@@ -1,48 +1,65 @@
-import React, { useState } from 'react'
-import { useUser } from './UserProvider.jsx'
-import api from '../api.js'
+import {useState} from "react"
+import {useUser} from "./UserProvider.jsx"
+import api from "../api.js"
 
-export default function RegistrationForm() {
-  const user = useUser()
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
+export default function RegistrationForm () {
 
-  const registerRequest = api('/register') 
+	const user = useUser(),
+	 [
+			username,
+			setUsername
+		] = useState(""),
+	 [
+			password,
+			setPassword
+		] = useState(""),
 
-  async function handleSubmit(e) {
-    e.preventDefault()
+	 registerRequest = api("/register")
 
-    await registerRequest({
-      username,
-      password,
-    })
+	async function handleSubmit (e) {
 
-    await user.signIn(username, password)
-  }
+		e.preventDefault()
 
-  function handleUsernameChange(e) {
-    setUsername(e.target.value)
-  }
+		await registerRequest({
+			username,
+			password
+		})
 
-  function handlePasswordChange(e) {
-    setPassword(e.target.value)
-  }
+		await user.signIn(
+			username,
+			password
+		)
 
-  return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={handleUsernameChange} />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={handlePasswordChange} />
-        <button type="submit">Register</button>
-      </form>
-    </div>
-  )
+	}
+
+	function handleUsernameChange (e) {
+
+		setUsername(e.target.value)
+
+	}
+
+	function handlePasswordChange (e) {
+
+		setPassword(e.target.value)
+
+	}
+
+	return (
+		<div>
+			<form onSubmit={handleSubmit}>
+				<input
+					type="text"
+					placeholder="Username"
+					value={username}
+					onChange={handleUsernameChange} />
+				<input
+					type="password"
+					placeholder="Password"
+					value={password}
+					onChange={handlePasswordChange} />
+				<button type="submit">Register</button>
+			</form>
+		</div>
+	)
+
 }

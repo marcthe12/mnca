@@ -1,41 +1,58 @@
-import React, { useState } from 'react'
-import { UserContext, useUser } from './UserProvider.jsx'
+import {useState} from "react"
+import {useUser} from "./UserProvider.jsx"
 
-export default function LoginForm() {
-  const user = useUser()
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
+export default function LoginForm () {
 
-  async function handleSubmit(e) {
-    e.preventDefault()
-    await user.signIn(username, password)
-  }
+	const user = useUser(),
+	 [
+			username,
+			setUsername
+		] = useState(""),
+	 [
+			password,
+			setPassword
+		] = useState("")
 
-  function handleUsernameChange(e) {
-    setUsername(e.target.value)
-  }
+	async function handleSubmit (e) {
 
-  function handlePasswordChange(e) {
-    setPassword(e.target.value)
-  }
+		e.preventDefault()
+		await user.signIn(
+			username,
+			password
+		)
 
-  return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={handleUsernameChange} />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={handlePasswordChange} />
-        <button type="submit">Login</button>
-      </form>
-    </div>
-  )
+	}
+
+	function handleUsernameChange (e) {
+
+		setUsername(e.target.value)
+
+	}
+
+	function handlePasswordChange (e) {
+
+		setPassword(e.target.value)
+
+	}
+
+	return (
+		<div>
+			<form onSubmit={handleSubmit}>
+				<input
+					type="text"
+					placeholder="Username"
+					value={username}
+					onChange={handleUsernameChange} />
+				<input
+					type="password"
+					placeholder="Password"
+					value={password}
+					onChange={handlePasswordChange} />
+				<button type="submit">Login</button>
+			</form>
+		</div>
+	)
+
 }
 
 
