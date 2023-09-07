@@ -52,16 +52,16 @@ export default function MainChatArea ({group, isactive}) {
 		]
 	)
 	const toggleMenu = () => {
-		setIsMenuOpen(!isMenuOpen);
+		setIsMenuOpen(!isMenuOpen)
 	  }
 	
 	  const toggleAddUserModal = () => {
-		setIsAddUserModalOpen(!isAddUserModalOpen);
-	  };
+		setIsAddUserModalOpen(!isAddUserModalOpen)
+	  }
 	  const handleAddUser = (newUser) => {
-		console.log(`Adding user: ${newUser}`);
-		setIsAddUserModalOpen(false);
-	  };
+		console.log(`Adding user: ${newUser}`)
+		setIsAddUserModalOpen(false)
+	  }
 	
 	return <Hide show={isactive}>
 		<main className="grid grid-rows-[auto,1fr,auto] h-full">

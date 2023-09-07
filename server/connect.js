@@ -1,5 +1,4 @@
 import Token from "./Token.js"
-import jwt from "jsonwebtoken"
 
 class SocketMap{
 	constructor(){
@@ -12,7 +11,7 @@ class SocketMap{
 		this.set.delete(socket)
 	}
 	getSocketFromId(id){
-		return Array.from(this.set).filter((socket) => socket.id === id)
+		return Array.from(this.set).find((socket) => socket.id === id)
 	}
 	getUserSocket(username){
 		return Array.from(this.set).filter(({data}) => data.username === username)
@@ -24,8 +23,7 @@ const userSessions = new SocketMap()
 export function auth (socket, next) {
 	const {token} = socket.handshake.auth
 	try{	
-		Token.verify(token)
-		const {user} = jwt.decode(token)
+		const { user } = Token.verify(token)
 		socket.data.username = user
 		next()
 	} catch (err) {
@@ -39,7 +37,16 @@ export default function connection (socket) {
 	socket.join(username)
 	userSessions.add(socket)
 	socket.emit("connectionSuccess", socket.id)
-	socket.to(username).emit("temporal", userSessions.getUserSocket(username).map(({id}) => id))
+	socket.to(username).emit("temporal", socket.id)
+	
+	socket.on("offer", function(message){
+		const target = userSessions.getSocketFromId(message.dest)
+		target?.emit("offer", message)
+	})
+
+	socket.conn.on("upgrade", (transport) => {
+	    console.log(`transport upgraded to ${transport.name}`)
+	})
 
 	socket.on("disconnect", function () {
 		console.log("Disconnected")
