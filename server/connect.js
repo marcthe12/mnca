@@ -23,12 +23,13 @@ const userSessions = new SocketMap()
 
 export function auth (socket, next) {
 	const {token} = socket.handshake.auth
-	if (Token.verify(token)) {
+	try{	
+		Token.verify(token)
 		const {user} = jwt.decode(token)
 		socket.data.username = user
 		next()
-	} else {
-		next(new Error("Invalid Tokens"))
+	} catch (err) {
+		next(err)
 	}
 
 }
