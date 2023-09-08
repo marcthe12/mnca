@@ -1,3 +1,5 @@
+import { WebSocketServer } from "ws"
+import crypto from "node:crypto"
 import Token from "./Token.js"
 
 class SocketMap{
@@ -13,26 +15,14 @@ class SocketMap{
 	getSocketFromId(id){
 		return Array.from(this.set).find((socket) => socket.id === id)
 	}
-	getUserSocket(username){
-		return Array.from(this.set).filter(({data}) => data.username === username)
+	getUserSockets(user) {
+		return Array.from(this.set).filter((socket) => socket.user === user)
 	}
 }
 
 const userSessions = new SocketMap()
 
-export function auth (socket, next) {
-	const {token} = socket.handshake.auth
-	try{	
-		const { user } = Token.verify(token)
-		socket.data.username = user
-		next()
-	} catch (err) {
-		next(err)
-	}
-
-}
-
-export default function connection (socket) {
+export function connection (socket) {
 	const username = socket.data.username
 	socket.join(username)
 	userSessions.add(socket)
@@ -45,12 +35,80 @@ export default function connection (socket) {
 	})
 
 	socket.conn.on("upgrade", (transport) => {
-	    console.log(`transport upgraded to ${transport.name}`)
+		console.log(`transport upgraded to ${transport.name}`)
 	})
 
-	socket.on("disconnect", function () {
-		console.log("Disconnected")
+	socket.on("disconnect", function (reason) {
+		console.log(`Disconnected ${reason}`)
 		userSessions.remove(socket)
 	})
 }
 
+function broadcastToUser(user, id, action) {
+	(userSessions.getUserSockets(user) ?? []).forEach((recvClient) => {
+		if (recvClient.id !== id) {
+			const message = { type: "normal", action, client: id }
+			recvClient.ws.send(JSON.stringify(message))
+		}
+	})
+}
+
+export default function(server){
+	const wss = new WebSocketServer({ server })
+	wss.on("connection", function(ws, req){
+		const token = new URL(req.url, `ws://${req.headers.host}`).searchParams.get("token")
+		var user
+		try{	
+			user = Token.verify(token).user
+		} catch (err) {
+			ws.close(1008, "Forbidden")
+			return
+		}
+		
+		const subList = new Set()
+		
+		const socket = { user, ws, id: crypto.randomUUID() }
+		userSessions.add(socket)
+		subList.add(user)		
+		broadcastToUser(user, socket.id, "subscribe")
+
+		console.log(userSessions)
+
+		ws.on("close", function(code, reason){
+			subList.forEach((user) =>
+				broadcastToUser(user, socket.id, "unsubscribe")
+			)
+			userSessions.remove(socket)
+			console.log(userSessions)
+			console.error(code, reason)
+		})
+		ws.on("message", function(message){
+			const msg = JSON.parse(message)
+		
+			console.log(msg)
+			switch (msg.type) {
+			case "normal":{
+				const user = msg.user
+				switch (msg.action) {
+				case "subscribe":{
+					subList.add(user)		
+					broadcastToUser(user, socket.id, msg.action)
+					break
+				}
+				case "unsubscribe":{
+					subList.remove(user)		
+					broadcastToUser(user, socket.id, msg.action)
+					break
+				}
+				}
+				break
+			}
+			case "proxy":{
+				const target = userSessions.getSocketFromId(msg.dest)
+				target?.ws.send(JSON.stringify({src: socket.id, ...msg}))
+				break
+			}
+			}
+		})
+	})
+}
