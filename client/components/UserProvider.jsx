@@ -1,83 +1,35 @@
-import {createContext, useContext, useEffect, useState} from "react"
-import api from "../api.js"
+import {createContext, useContext, useEffect, useState, useRef} from "react"
+import { UserAuth } from "../UserAuth"
 
 const UserContex = createContext(null)
 
 export function useUser () {
 
-	return useContext(UserContex)
+	return useContext(UserContex)?.user
 
 }
 
-function JWTdecode (token) {
-
-	const list = token.split(".")
-	return {
-		"header": JSON.parse(atob(list[0])),
-		"body": JSON.parse(atob(list[1])),
-		"signature": list[2]
-	}
-
-}
 
 export function UserContext ({children}) {
 
 	const [
 			token,
 			setToken
-		] = useState(localStorage.getItem("token")),
+		] = useState()
 
-	 loginRequest = api("/login")
-
-	async function signIn (username, password) {
-
-		const data = await loginRequest({username,
-			password})
-		setToken(data.token)
-
-	}
-
-	async function signOut () {
-
-		setToken()
-
-	}
+	const user = useRef(null)
 
 	useEffect(
 		() => {
-
-			if (token) {
-
-				localStorage.setItem(
-					"token",
-					token
-				)
-
-			} else {
-
-				localStorage.removeItem("token")
-
+			user.current = new UserAuth()
+			setToken(user.current.token)
+			user.current.onSignin = token => {
+				setToken(token)
 			}
-
-		},
-		[token]
+			user.current.onSignOut = () => {setToken()}
+		},[]
 	)
 
-	return <UserContex.Provider value={{
-		get "data" () {
-
-			return this.token
-				? JWTdecode(this.token)
-				: null
-
-		},
-		get "token" () {
-
-			return token
-
-		},
-		signIn,
-		signOut
-	}}>{children}</UserContex.Provider>
+	return <UserContex.Provider value={{user:user.current,token}}>{children}</UserContex.Provider>
 
 }

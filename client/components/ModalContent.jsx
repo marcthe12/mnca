@@ -8,7 +8,7 @@ export default function ModalContent ({onCreate, onClose}) {
 	] = useState("")
 	return <>
 		<h2 className="text-xl font-semibold mb-4 text-menu-text">Create a New Group</h2>
-		<div className="mb-4">
+		<div className="mb-4 ">
 			<label className="block font-medium mb-1 text-menu-text">
         Group Name
 				<input

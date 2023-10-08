@@ -1,13 +1,11 @@
 import Header from "./components/Header.jsx"
 import {IndexDBProvider} from "./components/IndexDBProvider.jsx"
 import {UserContext} from "./components/UserProvider.jsx"
-import {WebSocketProvider} from "./components/WebSocketProvider.jsx"
 
 export default function Layout ({children}) {
 
 	return <UserContext>
 		<IndexDBProvider>
-			<WebSocketProvider>
 				<div className="h-screen w-screen grid grid-rows-[auto,1fr] overflow-hidden">
 					<div className="bg-primary-bg">
 						<Header />
@@ -16,7 +14,6 @@ export default function Layout ({children}) {
 						{children}
 					</div>
 				</div>
-			</WebSocketProvider>
 		</IndexDBProvider>
 	</UserContext >
 

@@ -30,7 +30,7 @@ export default function MainApp () {
 
 	const user = useUser()
 
-	return user.token
+	return user?.token
 		? <MainArea />
 		: <Logout />
 

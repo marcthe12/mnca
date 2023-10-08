@@ -14,8 +14,10 @@ export default function LoginForm () {
 		] = useState("")
 
 	async function handleSubmit (e) {
+	
 
 		e.preventDefault()
+		console.log("Something!")
 		await user.signIn(
 			username,
 			password

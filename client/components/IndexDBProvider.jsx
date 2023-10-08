@@ -17,44 +17,44 @@ export function IndexDBProvider ({children}) {
 			db,
 			setDB
 		] = useState(null)
-	useEffect(
-		() => {
+	// useEffect(
+	// 	() => {
 
-			(async () => {
+	// 		(async () => {
 
-				const result = user.token
-					? await openDB(
-						user.data.body.user,
-						3,
-						{
-							upgrade (db) {
+	// 			const result = user.token
+	// 				? await openDB(
+	// 					user.data.body.user,
+	// 					3,
+	// 					{
+	// 						upgrade (db) {
 
-								db.createObjectStore(
-									"groups",
-									{"keyPath": "groupId"}
-								)
-								const messageStore = db.createObjectStore(
-									"messages",
-									{"keyPath": "messageId"}
-								)
-								messageStore.createIndex(
-									"groupIndex",
-									"groupId",
-									{"unique": false}
-								)
+	// 							db.createObjectStore(
+	// 								"groups",
+	// 								{"keyPath": "groupId"}
+	// 							)
+	// 							const messageStore = db.createObjectStore(
+	// 								"messages",
+	// 								{"keyPath": "messageId"}
+	// 							)
+	// 							messageStore.createIndex(
+	// 								"groupIndex",
+	// 								"groupId",
+	// 								{"unique": false}
+	// 							)
 
-							}
-						}
-					)
-					: null
-				setDB(result)
-				return () => db.close()
+	// 						}
+	// 					}
+	// 				)
+	// 				: null
+	// 			setDB(result)
+	// 			return () => db.close()
 
-			})()
+	// 		})()
 
-		},
-		[user]
-	)
+	// 	},
+	// 	[user]
+	// )
 
 	return <IndexDBContex.Provider value={db}>{children}</IndexDBContex.Provider>
 
