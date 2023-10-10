@@ -20,10 +20,10 @@ class SocketMap {
 			rtc: new RTCPeerConnection({
 				iceServers: [
 					{
-						urls: ["stun:172.24.202.9:3478"],
+						urls: ["stun:172.27.171.249:3478"],
 					},
 					{
-						urls: ["turn:172.24.202.9:3478"],
+						urls: ["turn:172.27.171.249:3478"],
 						username: "chris",
 						credential: "1234",
 					},
@@ -84,7 +84,10 @@ class SocketMap {
 				})
 			}
 		})
-
+		conn.rtc.addEventListener("connectionstatechange", (event) => {
+			console.log(this.values)
+			this.handleChange()
+		})
 
 		conn.rtc.addEventListener("oniceconnectionstatechange", function () {
 			if (this.iceConnectionState === "failed") {
@@ -109,7 +112,7 @@ class SocketMap {
 		return conn
 	}
 	handleChange(){
-		this?.onChange(this.values)
+		this.onChange?.(this.values)
 	}
 	delete(key){
 		this.get(key).close()
@@ -118,7 +121,7 @@ class SocketMap {
 		return ret
 	}
 	clear(){
-		this.socketMap.forEach((val, key) => {
+		this.mapping.forEach((val, key) => { //Changed to mapping
 			this.delete(key)
 		})
 	}

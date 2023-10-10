@@ -1,5 +1,7 @@
 import api from "./api.js";
 import { SocketInit } from "./SocketInit";
+import {openDB} from "idb"
+
 export class UserAuth {
 	constructor() {
 		this.connect = null
@@ -13,7 +15,15 @@ export class UserAuth {
 	set token(value) {
 		this._token = value
 		if (value){
-			this.connect = new SocketInit(this.token)
+			this.connect = new SocketInit(value)
+			localStorage.setItem("token", value);
+			this.dbconnect()
+			this.onSignin?.(value);
+		}
+		else {
+			this.connect?.close();
+			this.db?.close()
+			this.onSignOut?.();
 		}
 		
 	}
@@ -24,7 +34,33 @@ export class UserAuth {
 			: null;
 
 	}
+	dbconnect(){
+		this.db = this.token
+		? openDB(
+			this.data.body.user,
+			3,
+			{
+				upgrade (db) {
 
+					db.createObjectStore(
+						"groups",
+						{"keyPath": "groupId"}
+					)
+					const messageStore = db.createObjectStore(
+						"messages",
+						{"keyPath": "messageId"}
+					)
+					messageStore.createIndex(
+						"groupIndex",
+						"groupId",
+						{"unique": false}
+					)
+
+				}
+			}
+		)
+		: null
+	}
 	async signIn(username, password) {
 		const loginRequest = api("/login");
 		const data = await loginRequest({
@@ -32,16 +68,11 @@ export class UserAuth {
 			password
 		});
 		this.token = data.token;
-		localStorage.setItem("token", this.token);
-		this?.onSignin(data.token);
 	}
 
 	async signOut() {
 		localStorage.removeItem("token");
 		this.token = null;
-		this.connect.close();
-		this?.onSignOut();
-		
 	}
 }
 function JWTdecode(token) {

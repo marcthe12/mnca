@@ -3,7 +3,7 @@ import ModalContent from "./ModalContent.jsx"
 import Modal from "./Modal.jsx"
 import Menu from "./Menu.jsx"
 import {useUser} from "./UserProvider.jsx"
-
+import PeersConnectedModalContent from "./PeersConnectedModalContent.jsx";
 export default function UserMenu ({onGroupCreate}) {
 
 	const user = useUser(),
@@ -11,14 +11,25 @@ export default function UserMenu ({onGroupCreate}) {
 			showCreateGroupModal,
 			setShowCreateGroupModal
 		] = useState(false)
+	const [showPeersConnectedModal, setShowPeersConnectedModal] = useState(false);
 
-	function close () {
+	function closegroupmodal () {
 
 		setShowCreateGroupModal(false)
 
 	}
 
-	function open () {
+	function closePeersConnectedmodal () {
+
+		setShowPeersConnectedModal(false)
+
+	}
+
+	function openPeersConnectedModal() {
+		setShowPeersConnectedModal(true);
+	  }
+
+	function opengroupmodal () {
 
 		setShowCreateGroupModal(true)
 
@@ -27,9 +38,10 @@ export default function UserMenu ({onGroupCreate}) {
 	async function handleCreateGroup (name) {
 
 		onGroupCreate(name)
-		close()
+		closegroupmodal()
 
 	}
+	
 
 	return (
 		<div className="flex items-center justify-between px-4 py-2 bg-secondary-bg shadow-md">
@@ -48,21 +60,31 @@ export default function UserMenu ({onGroupCreate}) {
 			<div className="relative inline-block text-left">
 				<Menu>
 					<button
-						onClick={() => open()}
+						onClick={() => openPeersConnectedModal()}
 						className="block w-full px-4 py-2 text-menu-text bg-menu-bg hover:bg-menu-hover text-left"
 						role="menuitem"
 					>
-            New Group
+						New Group
+					</button>
+					<Modal show={showPeersConnectedModal}>
+						<ModalContent onClose={closePeersConnectedmodal} onCreate={handleCreateGroup} />
+					</Modal>
+					<button
+						onClick={() => opengroupmodal()}
+						className="block w-full px-4 py-2 text-menu-text bg-menu-bg hover:bg-menu-hover text-left"
+						role="menuitem"
+					>
+						Peers Connected
 					</button>
 					<Modal show={showCreateGroupModal}>
-						<ModalContent onClose={close} onCreate={handleCreateGroup} />
+						<PeersConnectedModalContent onClose={closegroupmodal} />
 					</Modal>
 					<button
 						onClick={() => user.signOut()}
 						className="block w-full px-4 py-2 text-menu-text bg-menu-bg hover:bg-menu-hover text-left"
 						role="menuitem"
 					>
-            Sign Out
+						Sign Out
 					</button>
 				</Menu>
 			</div>
