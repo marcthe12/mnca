@@ -2,7 +2,6 @@ import {useEffect, useState} from "react"
 import MessageBox from "./MessageBox.jsx"
 import SendBox from "./SendBox.jsx"
 import Hide from "./Hide.jsx"
-import {useIndexDB} from "./IndexDBProvider.jsx"
 import {useUser} from "./UserProvider.jsx"
 import AddUserModal from "./AddUserModal.jsx"
 
@@ -11,44 +10,22 @@ export default function MainChatArea ({group, isactive}) {
 	const [isMenuOpen, setIsMenuOpen] = useState(false)
 	const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false)
 	const user = useUser()
-	const db = useIndexDB()
 	
-	async function ReloadMessage () {
-
-		const message = await db?.getAllFromIndex(
-			"messages",
-			"groupIndex",
-			group.groupId
-		) ?? []
-		setMessages(message)
-
-	}
-
 	async function SendHandler (message) {
 
-		db.add(
-			"messages",
-			{
-				"name": user.data.body.user,
-				message,
-				"date": new Date(),
-				"groupId": group.groupId,
-				"messageId": crypto.getRandomValues(new Uint8Array(8)).toString()
-			}
-		)
-		await ReloadMessage()
+		user.addNewMessage(group.groupId,message)
 
 	}
 
 	useEffect(
 		() => {
 
-			ReloadMessage()
-
+			user.onMessageGroupChange[group.groupId] = (newmessage) => setMessages(newmessage)
+			user.getGroupMessages(group.groupId)
+			return () => user.onMessageGroupChange[group.groupId] = undefined
 		},
 		[
-			db,
-			messages
+			user
 		]
 	)
 	const toggleMenu = () => {

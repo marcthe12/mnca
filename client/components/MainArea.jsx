@@ -2,49 +2,31 @@ import {useEffect, useState} from "react"
 import MainChatArea from "./MainChatArea.jsx"
 import TabButton from "./TabButton.jsx"
 import UserMenu from "./UserMenu.jsx"
-import {useIndexDB} from "./IndexDBProvider.jsx"
-
+import { useUser } from "./UserProvider.jsx"
 export default function MainArea () {
-
-	const db = useIndexDB(),
-	 [
+	const user = useUser()
+	 const [
 			activeTab,
 			setActiveTab
-		] = useState(0),
-	 [
+		] = useState(0)
+	 const [
 			groups,
 			setGroups
 		] = useState([])
 
-	async function GroupList () {
-
-		const message = await db?.getAll("groups") ?? []
-		setGroups(message)
-
-	}
-
 	async function GroupAddHandler (name) {
-
-		db?.add(
-			"groups",
-			{
-				name,
-				"groupId": crypto.getRandomValues(new Uint8Array(8)).toString()
-			}
-		)
-		await GroupList()
-
+		user.addGroup({name})
 	}
 
 	useEffect(
 		() => {
 
-			GroupList()
-
+			user.onGroupChange = (grouplist) =>  setGroups(grouplist)
+			user.getGroups()
+			return () => user.onGroupChange = undefined
 		},
 		[
-			db,
-			groups
+			user
 		]
 	)
 

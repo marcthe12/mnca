@@ -31,7 +31,7 @@ export default function PeersConnectedModalContent({ onClose }) {
 								<td>
 									{row.id}
 								</td>
-								<td></td>
+								<td>{row.user}</td>
 								<td>{row.rtc.connectionState}</td>
 							</tr>
 						))

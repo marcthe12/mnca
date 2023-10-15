@@ -47,7 +47,7 @@ export function connection (socket) {
 function broadcastToUser(user, id, action) {
 	(userSessions.getUserSockets(user) ?? []).forEach((recvClient) => {
 		if (recvClient.id !== id) {
-			const message = { type: "normal", action, client: id }
+			const message = { type: "normal", action, client: id, user }
 			recvClient.ws.send(JSON.stringify(message))
 		}
 	})
