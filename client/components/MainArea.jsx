@@ -14,13 +14,12 @@ export default function MainArea () {
 			setGroups
 		] = useState([])
 
-	async function GroupAddHandler (name) {
-		user.addGroup({name})
+	async function GroupAddHandler (group) {
+		user.addGroup(group)
 	}
 
 	useEffect(
 		() => {
-
 			user.onGroupChange = (grouplist) =>  setGroups(grouplist)
 			user.getGroups()
 			return () => user.onGroupChange = undefined

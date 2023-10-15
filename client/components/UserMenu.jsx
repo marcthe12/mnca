@@ -1,45 +1,38 @@
 import {useState} from "react"
-import ModalContent from "./ModalContent.jsx"
+import GroupModal from "./GroupModal.jsx"
 import Modal from "./Modal.jsx"
 import Menu from "./Menu.jsx"
 import {useUser} from "./UserProvider.jsx"
 import PeersConnectedModalContent from "./PeersConnectedModalContent.jsx";
 export default function UserMenu ({onGroupCreate}) {
 
-	const user = useUser(),
-	 [
+	const user = useUser()
+	const [
 			showCreateGroupModal,
 			setShowCreateGroupModal
 		] = useState(false)
 	const [showPeersConnectedModal, setShowPeersConnectedModal] = useState(false);
 
 	function closegroupmodal () {
-
 		setShowCreateGroupModal(false)
-
 	}
 
 	function closePeersConnectedmodal () {
-
 		setShowPeersConnectedModal(false)
 
 	}
 
 	function openPeersConnectedModal() {
 		setShowPeersConnectedModal(true);
-	  }
+	}
 
 	function opengroupmodal () {
-
 		setShowCreateGroupModal(true)
-
 	}
 
 	async function handleCreateGroup (name) {
-
 		onGroupCreate(name)
 		closegroupmodal()
-
 	}
 	
 
@@ -67,7 +60,7 @@ export default function UserMenu ({onGroupCreate}) {
 						New Group
 					</button>
 					<Modal show={showPeersConnectedModal}>
-						<ModalContent onClose={closePeersConnectedmodal} onCreate={handleCreateGroup} />
+						<GroupModal onClose={closePeersConnectedmodal} onCreate={handleCreateGroup} />
 					</Modal>
 					<button
 						onClick={() => opengroupmodal()}

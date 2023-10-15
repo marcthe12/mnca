@@ -9,11 +9,9 @@ class SocketMap {
 	has(key){
 		return this.mapping.has(key)
 	}
-	create(recv,user,sendSignal){
-		console.log(user)
+	create(recv,user,sendSignal,polite = true){
 		let makingOffer = false
 		let ignoreOffer = false
-		const polite = true
 
 		const conn = {
 			id: recv,   
@@ -53,13 +51,28 @@ class SocketMap {
 			},
 			async onIceCandidate(candidate) {
 				try {
-					
 					await this.rtc.addIceCandidate(candidate)
 				} catch (err) {
 					if (!ignoreOffer) {
 						throw err
 					}
 				}
+			},
+			onRecieve:(...args) => this.handleRecieve(...args),
+			setupDataChannel(channel){
+				channel.addEventListener("open", () => {
+					this.channel = channel
+				})
+	
+				channel.addEventListener("message", async (event) => {
+					const message = JSON.parse(event.data)
+					await this.onRecieve(message)
+
+				})
+			},
+			async send(data){
+				const msg = JSON.stringify(data);  
+				this.channel.send(msg)
 			}
 		}
 		this.mapping.set(recv, conn)
@@ -86,7 +99,6 @@ class SocketMap {
 			}
 		})
 		conn.rtc.addEventListener("connectionstatechange", (event) => {
-		
 			this.handleChange()
 		})
 
@@ -97,23 +109,23 @@ class SocketMap {
 		})
 
 		conn.rtc.addEventListener("datachannel", async function ({ channel }) {//modify needed
-			channel.addEventListener("open", function () {
-				channel.send(conn.id)
-				console.log(this)
-			})
-
-			channel.addEventListener("message", function (event) {
-				channel.send(conn.id)
-				console.log(event.data)
-				//working bit
-
-			})
+			conn.setupDataChannel(channel)
 		})
 
 		return conn
 	}
+	async sendAllClients(data,...user){
+		await Promise.all(this.getAllClients(...user).map((client) => client.send(data)))
+	}
+	getAllClients(...user){
+		const userlist = new Set(user)
+		return this.values.filter(({user}) => userlist.has(user))		
+	}
 	handleChange(){
 		this.onChange?.(this.values)
+	}
+	async handleRecieve(message){
+		await this.onRecieve?.(message)
 	}
 	delete(key){
 		this.get(key).close()
@@ -151,8 +163,8 @@ export class SocketInit {
 		})
 
 	}
-	createPeer(recv,user) {
-		return this.socketMap.create(recv,user,(data) => this.sendProxy(recv, data))
+	createPeer(recv,user,polite=true) {
+		return this.socketMap.create(recv,user,(data) => this.sendProxy(recv, data),polite)
 	}
 	send(type, data) {
 		return this.result.send(JSON.stringify({
@@ -178,7 +190,7 @@ export class SocketInit {
 			case "normal": {
 				switch (message.action) {
 					case "subscribe": {
-						const conn = this.createPeer(message.client,message.user);
+						const conn = this.createPeer(message.client,message.user,false);
 						conn.sendSignal({ action: "ack" , user: this.getuserauth.data.body.user});
 						break;
 					}
@@ -195,13 +207,14 @@ export class SocketInit {
 				switch (message.action) {
 					case "ack": {
 						const conn = this.createPeer(message.src,message.user);
-						conn.rtc.createDataChannel(message.client);
+						const channel = conn.rtc.createDataChannel(message.client);
+						conn.setupDataChannel(channel)
 						conn.sendSignal({ action: "setup" });
 						break;
 					}
 					case "setup": {
 						const conn = this.socketMap.get(message.src);
-						conn.rtc.createDataChannel(message.client);
+						//conn.rtc.createDataChannel(message.client);
 						break;
 					}
 					case "offer": {

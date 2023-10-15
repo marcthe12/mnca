@@ -4,11 +4,8 @@ import { UserAuth } from "../UserAuth"
 const UserContex = createContext(null)
 
 export function useUser () {
-
 	return useContext(UserContex)?.user
-
 }
-
 
 export function UserContext ({children}) {
 

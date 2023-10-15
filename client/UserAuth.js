@@ -16,6 +16,7 @@ export class UserAuth {
 		this._token = value
 		if (value){
 			this.connect = new SocketInit(this)
+			this.connect.socketMap.onRecieve = async message => await this.recieveNewMessage(message)
 			localStorage.setItem("token", value);
 			this.dbconnect()
 			this.onSignin?.(value);
@@ -69,13 +70,7 @@ export class UserAuth {
 
 	async addGroup(groupobjects){
 		const db = await this.db
-		db?.add(
-			"groups",
-			{				
-				"groupId": crypto.getRandomValues(new Uint8Array(8)).toString(),
-				...groupobjects
-			}
-		)
+		db?.add("groups",groupobjects)
 		await this.getGroups()
 	}
 	async getGroupMessages(groupId) {
@@ -95,23 +90,31 @@ export class UserAuth {
 		this.onMessageGroupChange[groupId]?.(message)
 
 	}
+	async sendNewMessage(groupId,message){
+		const data = {
+			"name": this.data.body.user,
+			mimetype: '',
+			message,
+			"date": new Date(),
+			groupId,
+			"messageId": crypto.getRandomValues(new Uint8Array(8)).toString()
+		}
+		await this.connect.socketMap.sendAllClients(data, this.data.body.user)
+		return data;
+	}
+	async recieveNewMessage(message){
+		const db = await this.db
+		message.date = new Date(message.date)
+		console.log(message	)
+		db.add("messages",message)
+		await this.getGroupMessages(message.groupId)
+	}
 
 	async addNewMessage(groupId,message) {
-		
-		const db = await this.db
-		db.add(
-			"messages",
-			{
-				"name": this.data.body.user,
-				message,
-				"date": new Date(),
-				"groupId": groupId,
-				"messageId": crypto.getRandomValues(new Uint8Array(8)).toString()
-			}
-		)
-		await this.getGroupMessages(groupId)
-
+		const msg = await this.sendNewMessage(groupId,message)
+		await this.recieveNewMessage(msg)
 	}
+
 	async signIn(username, password) {
 		const loginRequest = api("/login");
 		const data = await loginRequest({

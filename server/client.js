@@ -1,10 +1,10 @@
-import express, {Router} from "express"
+import express, { Router } from "express"
 import path from "node:path"
 import fs from "node:fs/promises"
 
 const environment = process.env.NODE_ENV
 
-function assetExtensionRegex () {
+function assetExtensionRegex() {
 
 	const supportedAssets = [
 		"svg",
@@ -21,14 +21,11 @@ function assetExtensionRegex () {
 
 }
 
-function asset () {
-
+function asset() {
 	const router = Router()
-
 	router.get(
 		assetExtensionRegex(),
 		(req, res) => {
-
 			res.redirect(
 				303,
 				`http://localhost:5173/client${req.path}`
@@ -41,12 +38,10 @@ function asset () {
 
 }
 
-async function parseManifest () {
+async function parseManifest() {
 
 	if (environment !== "production") {
-
 		return {}
-
 	}
 
 	const manifestPath = path.join(
@@ -58,11 +53,11 @@ async function parseManifest () {
 
 }
 
-async function readJsonFile (Path) {
+async function readJsonFile(Path) {
 
 	const file = await fs.readFile(
 		Path,
-		{"encoding": "utf-8"}
+		{ "encoding": "utf-8" }
 	)
 
 	return JSON.parse(file)
@@ -72,31 +67,14 @@ async function readJsonFile (Path) {
 export default function () {
 
 	const router = Router()
-
 	if (process.env.NODE_ENV === "production") {
-
-		router.use(express.static(path.join(
-			path.resolve(),
-			"dist"
-		)))
-
+		router.use(express.static(path.join(path.resolve(),	"dist")))
 	} else {
-
-		router.use(express.static(path.join(
-			path.resolve(),
-			"public"
-		)))
-		router.use(
-			"/client",
-			asset()
-		)
-
+		router.use(express.static(path.join(path.resolve(),	"public")))
+		router.use("/client", asset())
 	}
 
-	router.get(
-		"/",
-		async (_req, res) => {
-
+	router.get("/",	async (_req, res) => {
 			const data = {
 				environment,
 				"manifest": await parseManifest()
