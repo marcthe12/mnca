@@ -13,43 +13,38 @@ export default function PeersConnectedModalContent({ onClose }) {
 		}
 	},[])
 	return <>
-		<h2 className="text-xl font-semibold mb-4 text-menu-text">Create a New Group</h2>
-		<div className="mb-4 ">
-			<p>Ths shows the user list</p>
-			<table className="table-auto">
-				<thead>
-					<tr>
-						<th>ID</th>
-						<th>User</th>
-						<th>Status</th>
-					</tr>
-				</thead>
-				<tbody>
-					{
-						user.connect.socketMap.values.map((row) => (
-							<tr key={row.id}>
-								<td>
-									{row.id}
-								</td>
-								<td>{row.user}</td>
-								<td>{row.rtc.connectionState}</td>
+		<h2 className="text-xl font-semibold mb-4 text-menu-text">Connected Peers</h2>
+		<div className="mb-4">
+			<p>This shows the user list</p>
+			<div className="overflow-x-auto">
+				<table className="min-w-full bg-white border border-gray-300">
+					<thead>
+						<tr>
+							<th className="px-4 py-2">ID</th>
+							<th className="px-4 py-2">User</th>
+							<th className="px-4 py-2">Status</th>
+						</tr>
+					</thead>
+					<tbody>
+						{user.connect.socketMap.values.map((row) => (
+							<tr key={row.id} className="border-t border-gray-300">
+								<td className="px-4 py-2">{row.id}</td>
+								<td className="px-4 py-2">{row.user}</td>
+								<td className="px-4 py-2">{row.rtc.connectionState}</td>
 							</tr>
-						))
-					}
-				</tbody>
-			</table>
-			<div className="flex justify-end">
+						))}
+					</tbody>
+				</table>
+			</div>
+			<div className="mt-4 flex justify-end">
 				<button
 					onClick={() => {
-
-						onClose()
-
+						onClose();
 					}}
-					className="px-4 py-2 bg-primary-bg rounded-md mr-2"
+					className="px-4 py-2 bg-primary-bg text-white rounded-md mr-2"
 				>
-          Close
+					Close
 				</button>
-				
 			</div>
 		</div>
 	</>

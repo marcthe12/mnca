@@ -70,7 +70,7 @@ export class UserAuth {
 
 	async addGroup(groupobjects){
 		const db = await this.db
-		db?.add("groups",groupobjects)
+		await db.add("groups",groupobjects)
 		await this.getGroups()
 	}
 	async getGroupMessages(groupId) {
@@ -106,7 +106,7 @@ export class UserAuth {
 		const db = await this.db
 		message.date = new Date(message.date)
 		console.log(message	)
-		db.add("messages",message)
+		await db.add("messages",message)
 		await this.getGroupMessages(message.groupId)
 	}
 
