@@ -19,10 +19,10 @@ class SocketMap {
 			rtc: new RTCPeerConnection({
 				iceServers: [
 					{
-						urls: ["stun:172.27.171.249:3478"],
+						urls: ["stun:172.21.212.72:3478"],
 					},
 					{
-						urls: ["turn:172.27.171.249:3478"],
+						urls: ["turn:172.21.212.72:3478"],
 						username: "chris",
 						credential: "1234",
 					},
