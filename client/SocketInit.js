@@ -71,7 +71,7 @@ class SocketMap {
 				})
 			},
 			async send(data){
-				const msg = JSON.stringify(data);  
+				const msg = JSON.stringify(data)  
 				this.channel.send(msg)
 			}
 		}
@@ -147,14 +147,14 @@ class SocketMap {
 export class SocketInit {
 	constructor(userAuth) {
 		this.getuserauth = userAuth
-		this.socketMap = new SocketMap();
-		const url = new URL(window.location.href);
-		url.pathname = "/";
-		url.protocol = "ws";
+		this.socketMap = new SocketMap()
+		const url = new URL(window.location.href)
+		url.pathname = "/"
+		url.protocol = "ws"
 		if (userAuth.token) {
-			url.searchParams.set("token", userAuth.token);
+			url.searchParams.set("token", userAuth.token)
 		}
-		this.result = new WebSocket(url);
+		this.result = new WebSocket(url)
 		this.result.addEventListener("open", () => {
 			this.result.addEventListener("message", async ({ data }) => {
 				this.handleMessage(data)
@@ -184,57 +184,57 @@ export class SocketInit {
 		return this.send("normal", data)
 	}
 	handleMessage(data) {
-		const message = JSON.parse(data);
+		const message = JSON.parse(data)
 
 		switch (message.type) {
-			case "normal": {
-				switch (message.action) {
-					case "subscribe": {
-						const conn = this.createPeer(message.client,message.user,false);
-						conn.sendSignal({ action: "ack" , user: this.getuserauth.data.body.user});
-						break;
-					}
-					case "unsubscribe": {
-						if (this.socketMap.has(message.client)) {
-							this.socketMap.delete(message.client);
-						}
-						break;
-					}
-				}
-				break;
+		case "normal": {
+			switch (message.action) {
+			case "subscribe": {
+				const conn = this.createPeer(message.client,message.user,false)
+				conn.sendSignal({ action: "ack" , user: this.getuserauth.data.body.user})
+				break
 			}
-			case "proxy": {
-				switch (message.action) {
-					case "ack": {
-						const conn = this.createPeer(message.src,message.user);
-						const channel = conn.rtc.createDataChannel(message.client);
-						conn.setupDataChannel(channel)
-						conn.sendSignal({ action: "setup" });
-						break;
-					}
-					case "setup": {
-						const conn = this.socketMap.get(message.src);
-						//conn.rtc.createDataChannel(message.client);
-						break;
-					}
-					case "offer": {
-						const conn = this.socketMap.get(message.src);
-						conn.onOffer(message.offer);
-						break;
-					}
-					case "icecandidate": {
-						const conn = this.socketMap.get(message.src);
-						conn.onIceCandidate(message.candidate);
-						break;
-					}
+			case "unsubscribe": {
+				if (this.socketMap.has(message.client)) {
+					this.socketMap.delete(message.client)
 				}
-				break;
+				break
 			}
+			}
+			break
+		}
+		case "proxy": {
+			switch (message.action) {
+			case "ack": {
+				const conn = this.createPeer(message.src,message.user)
+				const channel = conn.rtc.createDataChannel(message.client)
+				conn.setupDataChannel(channel)
+				conn.sendSignal({ action: "setup" })
+				break
+			}
+			case "setup": {
+				const conn = this.socketMap.get(message.src)
+				//conn.rtc.createDataChannel(message.client);
+				break
+			}
+			case "offer": {
+				const conn = this.socketMap.get(message.src)
+				conn.onOffer(message.offer)
+				break
+			}
+			case "icecandidate": {
+				const conn = this.socketMap.get(message.src)
+				conn.onIceCandidate(message.candidate)
+				break
+			}
+			}
+			break
+		}
 		}
 	}
 
 	close() {
-		this.socketMap.clear();
-		this.result.close();
+		this.socketMap.clear()
+		this.result.close()
 	}
 }

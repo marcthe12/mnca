@@ -10,9 +10,9 @@ export function useUser () {
 export function UserContext ({children}) {
 
 	const [
-			token,
-			setToken
-		] = useState()
+		token,
+		setToken
+	] = useState()
 
 	const user = useRef(null)
 

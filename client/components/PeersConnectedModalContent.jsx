@@ -39,7 +39,7 @@ export default function PeersConnectedModalContent({ onClose }) {
 			<div className="mt-4 flex justify-end">
 				<button
 					onClick={() => {
-						onClose();
+						onClose()
 					}}
 					className="px-4 py-2 bg-primary-bg text-white rounded-md mr-2"
 				>

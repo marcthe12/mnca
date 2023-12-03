@@ -6,13 +6,13 @@ import { useUser } from "./UserProvider.jsx"
 export default function MainArea () {
 	const user = useUser()
 	 const [
-			activeTab,
-			setActiveTab
-		] = useState(0)
+		activeTab,
+		setActiveTab
+	] = useState(0)
 	 const [
-			groups,
-			setGroups
-		] = useState([])
+		groups,
+		setGroups
+	] = useState([])
 
 	async function GroupAddHandler (group) {
 		user.addGroup(group)

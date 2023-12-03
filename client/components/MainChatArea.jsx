@@ -27,11 +27,11 @@ export default function MainChatArea ({group, isactive}) {
 	
 	const ModalOpen = () => {
 		setModalState(true)
-	};
+	}
 
 	const ModalClose = () => {
 		setModalState(false)
-	};
+	}
 
 	return <Hide show={isactive}>
 		<main className="grid grid-rows-[auto,1fr,auto] h-full">
@@ -40,7 +40,7 @@ export default function MainChatArea ({group, isactive}) {
 			</div>
 			<Modal show={isModalOpen}>
 	  				<GroupInfo group={group} onClose={() => ModalClose()} />
-				</Modal>
+			</Modal>
 			<div className="grid-row-2 overflow-y-auto">
 				{messages.map((message) => <MessageBox key={message.messageId} message={message} />)}
 			</div>

@@ -1,15 +1,15 @@
-import api from "./api.js";
-import { SocketInit } from "./SocketInit";
+import api from "./api.js"
+import { SocketInit } from "./SocketInit"
 import {openDB} from "idb"
 
 export class UserAuth {
 	constructor() {
 		this.connect = null
-		this.token = localStorage.getItem("token");
+		this.token = localStorage.getItem("token")
 		this.onMessageGroupChange = {}
 	}
 	get token() {
-		return this._token;
+		return this._token
 	}
 
 	set token(value) {
@@ -17,14 +17,14 @@ export class UserAuth {
 		if (value){
 			this.connect = new SocketInit(this)
 			this.connect.socketMap.onRecieve = async message => await this.recieveNewMessage(message)
-			localStorage.setItem("token", value);
+			localStorage.setItem("token", value)
 			this.dbconnect()
-			this.onSignin?.(value);
+			this.onSignin?.(value)
 		}
 		else {
-			this.connect?.close();
+			this.connect?.close()
 			this.db?.close()
-			this.onSignOut?.();
+			this.onSignOut?.()
 		}
 		
 	}
@@ -32,40 +32,40 @@ export class UserAuth {
 	get "data"() {
 		return this.token
 			? JWTdecode(this.token)
-			: null;
+			: null
 
 	}
 	dbconnect(){
 		this.db = this.token
-		? openDB(
-			this.data.body.user,
-			3,
-			{
-				upgrade (db) {
+			? openDB(
+				this.data.body.user,
+				3,
+				{
+					upgrade (db) {
 
-					db.createObjectStore(
-						"groups",
-						{"keyPath": "groupId"}
-					)
-					const messageStore = db.createObjectStore(
-						"messages",
-						{"keyPath": "messageId"}
-					)
-					messageStore.createIndex(
-						"groupIndex",
-						"groupId",
-						{"unique": false}
-					)
+						db.createObjectStore(
+							"groups",
+							{"keyPath": "groupId"}
+						)
+						const messageStore = db.createObjectStore(
+							"messages",
+							{"keyPath": "messageId"}
+						)
+						messageStore.createIndex(
+							"groupIndex",
+							"groupId",
+							{"unique": false}
+						)
 
+					}
 				}
-			}
-		)
-		: null
+			)
+			: null
 	}
 	async getGroups(){
 		const db = await this.db
 		const message = await db?.getAll("groups") ?? []
-		this.onGroupChange?.(message);
+		this.onGroupChange?.(message)
 	}
 
 	async addGroup(groupobjects){
@@ -81,9 +81,9 @@ export class UserAuth {
 			groupId
 		) ?? []
 		message.sort((a,b) => {
-			const dateA = new Date(a.date);
-			const dateB = new Date(b.date);
-			return dateA - dateB;
+			const dateA = new Date(a.date)
+			const dateB = new Date(b.date)
+			return dateA - dateB
 
 		})
 
@@ -93,14 +93,14 @@ export class UserAuth {
 	async sendNewMessage(groupId,message){
 		const data = {
 			"name": this.data.body.user,
-			mimetype: '',
+			mimetype: "",
 			message,
 			"date": new Date(),
 			groupId,
 			"messageId": crypto.getRandomValues(new Uint8Array(8)).toString()
 		}
 		await this.connect.socketMap.sendAllClients(data, this.data.body.user)
-		return data;
+		return data
 	}
 	async recieveNewMessage(message){
 		const db = await this.db
@@ -116,28 +116,28 @@ export class UserAuth {
 	}
 
 	async signIn(username, password) {
-		const loginRequest = api("/login");
+		const loginRequest = api("/login")
 		const data = await loginRequest({
 			username,
 			password
-		});
-		this.token = data.token;
+		})
+		this.token = data.token
 	}
 
 	async signOut() {
-		localStorage.removeItem("token");
-		this.token = null;
+		localStorage.removeItem("token")
+		this.token = null
 	}
 
 	
 }
 function JWTdecode(token) {
 
-	const list = token.split(".");
+	const list = token.split(".")
 	return {
 		"header": JSON.parse(atob(list[0])),
 		"body": JSON.parse(atob(list[1])),
 		"signature": list[2]
-	};
+	}
 
 }

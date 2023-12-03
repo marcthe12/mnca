@@ -75,17 +75,17 @@ export default function () {
 	}
 
 	router.get("/",	async (_req, res) => {
-			const data = {
-				environment,
-				"manifest": await parseManifest()
-			}
-
-			res.render(
-				"index.html.ejs",
-				data
-			)
-
+		const data = {
+			environment,
+			"manifest": await parseManifest()
 		}
+
+		res.render(
+			"index.html.ejs",
+			data
+		)
+
+	}
 	)
 
 	return router
