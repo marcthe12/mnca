@@ -26,7 +26,7 @@ export default function PeersConnectedModalContent({ onClose }) {
 						</tr>
 					</thead>
 					<tbody>
-						{user.connect.socketMap.values.map((row) => (
+						{status.map((row) => (
 							<tr key={row.id} className="border-t border-gray-300">
 								<td className="px-4 py-2">{row.id}</td>
 								<td className="px-4 py-2">{row.user}</td>

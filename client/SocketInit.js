@@ -98,7 +98,7 @@ class SocketMap {
 				})
 			}
 		})
-		conn.rtc.addEventListener("connectionstatechange", (event) => {
+		conn.rtc.addEventListener("connectionstatechange", () => {
 			this.handleChange()
 		})
 

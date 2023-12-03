@@ -1,32 +1,24 @@
-import {useEffect, useState} from "react"
+import { useEffect, useState } from "react"
 import MainChatArea from "./MainChatArea.jsx"
 import TabButton from "./TabButton.jsx"
 import UserMenu from "./UserMenu.jsx"
 import { useUser } from "./UserProvider.jsx"
-export default function MainArea () {
+export default function MainArea() {
 	const user = useUser()
-	 const [
-		activeTab,
-		setActiveTab
-	] = useState(0)
-	 const [
-		groups,
-		setGroups
-	] = useState([])
+	const [activeTab, setActiveTab] = useState(0)
+	const [groups, setGroups] = useState([])
 
-	async function GroupAddHandler (group) {
+	async function GroupAddHandler(group) {
 		user.addGroup(group)
 	}
 
 	useEffect(
 		() => {
-			user.onGroupChange = (grouplist) =>  setGroups(grouplist)
+			user.onGroupChange = (grouplist) => setGroups(grouplist)
 			user.getGroups()
 			return () => user.onGroupChange = undefined
 		},
-		[
-			user
-		]
+		[user]
 	)
 
 	return (

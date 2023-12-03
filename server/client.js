@@ -64,17 +64,17 @@ async function readJsonFile(Path) {
 
 }
 
-export default function () {
+export default function() {
 
 	const router = Router()
 	if (process.env.NODE_ENV === "production") {
-		router.use(express.static(path.join(path.resolve(),	"dist")))
+		router.use(express.static(path.join(path.resolve(), "dist")))
 	} else {
-		router.use(express.static(path.join(path.resolve(),	"public")))
+		router.use(express.static(path.join(path.resolve(), "public")))
 		router.use("/client", asset())
 	}
 
-	router.get("/",	async (_req, res) => {
+	router.get("/", async (_req, res) => {
 		const data = {
 			environment,
 			"manifest": await parseManifest()

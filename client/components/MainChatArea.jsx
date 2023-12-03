@@ -1,18 +1,18 @@
-import {useEffect, useState} from "react"
+import { useEffect, useState } from "react"
 import MessageBox from "./MessageBox.jsx"
 import SendBox from "./SendBox.jsx"
 import Hide from "./Hide.jsx"
-import {useUser} from "./UserProvider.jsx"
+import { useUser } from "./UserProvider.jsx"
 import GroupInfo from "./GroupInfo.jsx"
 import Modal from "./Modal.jsx"
 
-export default function MainChatArea ({group, isactive}) {
+export default function MainChatArea({ group, isactive }) {
 	const [messages, setMessages] = useState([])
 	const [isModalOpen, setModalState] = useState(false)
 	const user = useUser()
-	
-	async function SendHandler (message) {
-		user.addNewMessage(group.groupId,message)
+
+	async function SendHandler(message) {
+		user.addNewMessage(group.groupId, message)
 	}
 
 	useEffect(
@@ -24,7 +24,7 @@ export default function MainChatArea ({group, isactive}) {
 			user.getGroupMessages(group.groupId)
 			return () => user.onMessageGroupChange[group.groupId] = undefined
 		}, [user])
-	
+
 	const ModalOpen = () => {
 		setModalState(true)
 	}
@@ -39,7 +39,7 @@ export default function MainChatArea ({group, isactive}) {
 				<h2>{group.name}</h2>
 			</div>
 			<Modal show={isModalOpen}>
-	  				<GroupInfo group={group} onClose={() => ModalClose()} />
+				<GroupInfo group={group} onClose={() => ModalClose()} />
 			</Modal>
 			<div className="grid-row-2 overflow-y-auto">
 				{messages.map((message) => <MessageBox key={message.messageId} message={message} />)}
