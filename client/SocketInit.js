@@ -18,14 +18,6 @@ class SocketMap {
 			user,                           // links to  a userid
 			rtc: new RTCPeerConnection({
 				iceServers: [
-					{
-						urls: ["stun:172.21.212.72:3478"],
-					},
-					{
-						urls: ["turn:172.21.212.72:3478"],
-						username: "chris",
-						credential: "1234",
-					},
 				]
 			}),
 			sendSignal,
@@ -61,6 +53,7 @@ class SocketMap {
 			onRecieve:(...args) => this.handleRecieve(...args),
 			setupDataChannel(channel){
 				channel.addEventListener("open", () => {
+					console.log("test")
 					this.channel = channel
 				})
 	

@@ -25,14 +25,14 @@ export default function GroupInfo({ onClose, group }) {
 						onClick={copyGroupIdToClipboard}
 						className="px-4 py-2 bg-primary-bg text-white rounded-md hover:bg-primary-dark ml-2"
 					>
-            Copy
+						Copy
 					</button>
 				</div>
 				<button
 					onClick={onClose}
 					className="px-4 py-2 bg-primary-bg text-white rounded-md hover:bg-primary-dark"
 				>
-          Close
+					Close
 				</button>
 			</div>
 		</div>
