@@ -1,11 +1,10 @@
-import { useRef } from "react"
-
-export default function GroupInfo({ onClose, group }) {
-	async function copyGroupIdToClipboard() {
-		await navigator.clipboard.writeText(group.groupId)
-	}
-
-	return (
+export default function UploadModal ({onClose}) {
+  const handleFileChange = (e) => {
+    // Handle file change logic here
+    const selectedFile = e.target.files[0];
+    console.log('Selected file:', selectedFile);
+  };
+  return (
 		<div className="p-4">
 			<h2 className="text-2xl font-semibold mb-4 text-menu-text">{group.name}</h2>
 			<div className="flex flex-col">
@@ -17,13 +16,13 @@ export default function GroupInfo({ onClose, group }) {
 						readOnly
 						className="w-32 bg-white border border-gray-300 p-2 rounded-md text-gray-700"
 					/>
-					<button
-						onClick={copyGroupIdToClipboard}
-						className="px-4 py-2 bg-primary-bg text-white rounded-md hover:bg-primary-dark ml-2"
-					>
-            Copy
-					</button>
 				</div>
+        <button
+					onClick={on}
+					className="px-4 py-2 bg-primary-bg text-white rounded-md hover:bg-primary-dark"
+				>
+          Upload
+				</button>
 				<button
 					onClick={onClose}
 					className="px-4 py-2 bg-primary-bg text-white rounded-md hover:bg-primary-dark"
