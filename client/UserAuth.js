@@ -1,6 +1,7 @@
 import api from "./api.js"
 import { SocketInit } from "./SocketInit"
 import {openDB} from "idb"
+import {blobToBase64,Base64ToBlob} from "./Blob64.js"
 
 export class UserAuth {
 	constructor() {
@@ -91,9 +92,11 @@ export class UserAuth {
 
 	}
 	async sendNewMessage(groupId,message){
+		if(message instanceof File){
+			message = {data: await blobToBase64(message)}
+		}
 		const data = {
 			"name": this.data.body.user,
-			mimetype: "",
 			message,
 			"date": new Date(),
 			groupId,
@@ -105,7 +108,10 @@ export class UserAuth {
 	async recieveNewMessage(message){
 		const db = await this.db
 		message.date = new Date(message.date)
-		console.log(message	)
+		if(typeof message.message === "object"){
+			message.message = await Base64ToBlob(message.message.data)
+		}
+		console.log(message)
 		await db.add("messages",message)
 		await this.getGroupMessages(message.groupId)
 	}

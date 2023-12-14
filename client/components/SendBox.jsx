@@ -1,10 +1,7 @@
 import { useRef, useState } from "react"
-import UploadModal from "./UploadModal"
-import Modal from "./Modal"
 export default function SendBox({ onSend }) {
 
 	const [messageContent, setMessageContent] = useState("")
-	const [show, setShow] = useState(false)
 	const fileInput = useRef(null)
 
 	async function handleClick() {

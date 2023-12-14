@@ -14,9 +14,9 @@ export default function MessageBox({ message }) {
 		await navigator.clipboard.writeText(msg)
 	}
 
-	async function download(){
+	async function download() {
 		console.log(msg)
-		const blob = new File([msg], id, {type: "text/plain", lastModified: date})
+		const blob = msg instanceof File ? msg : new File([msg], id, { type: "text/plain", lastModified: date })
 		const link = document.createElement('a')
 		const blobUrl = URL.createObjectURL(blob)
 		link.download = blob.name
@@ -30,30 +30,32 @@ export default function MessageBox({ message }) {
 
 	return <section className="bg-secondary-bg text-secondary-text m-5 w-1/2 p-4" onClick={() => handleClick()}>
 		<Hide show={menu}>
-			<div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-menu-bg ring-1 ring-black ring-opacity-5">
-				<div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+			<div className="relative w-full mt-2 w-48 rounded-md shadow-lg bg-menu-bg ring-1 ring-black ring-opacity-5">
+				<div className="px-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
 					<button
-						className="block w-full px-4 py-2 text-menu-text bg-menu-bg hover:bg-menu-hover text-left"
+						className="px-4 py-2 text-menu-text bg-menu-bg hover:bg-menu-hover text-left"
 						role="menuitem"
 					>
 						Reply
 					</button>
 					<button
 						onClick={download}
-						className="block w-full px-4 py-2 text-menu-text bg-menu-bg hover:bg-menu-hover text-left"
+						className="px-4 py-2 text-menu-text bg-menu-bg hover:bg-menu-hover text-left"
 						role="menuitem"
 					>
 						Download
 					</button>
+					<Hide show={!(msg instanceof Blob)}>
+						<button
+							onClick={copy}
+							className="px-4 py-2 text-menu-text bg-menu-bg hover:bg-menu-hover text-left"
+							role="menuitem"
+						>
+							Copy
+						</button>
+					</Hide>
 					<button
-						onClick={copy}
-						className="block w-full px-4 py-2 text-menu-text bg-menu-bg hover:bg-menu-hover text-left"
-						role="menuitem"
-					>
-						Copy
-					</button>
-					<button
-						className="block w-full px-4 py-2 text-menu-text bg-menu-bg hover:bg-menu-hover text-left"
+						className="px-4 py-2 text-menu-text bg-menu-bg hover:bg-menu-hover text-left"
 						role="menuitem"
 					>
 						Delete
@@ -62,9 +64,20 @@ export default function MessageBox({ message }) {
 			</div>
 		</Hide>
 		<h3>{name}</h3>
-		<p>{msg}</p>
+		<MessageView message={msg} onDownload={download} />
 		<small><time>{date.toLocaleString()}</time></small>
 	</section>
-
 }
 
+function MessageView({ message, onDownload }) {
+	if (message instanceof Blob) {
+		return <button
+			onClick={onDownload}
+			className="block w-full px-4 py-2 text-menu-text bg-menu-bg hover:bg-menu-hover text-left">
+			Download
+		</button>
+	}
+	else {
+		return <p>{message}</p>
+	}
+}

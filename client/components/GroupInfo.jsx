@@ -1,5 +1,3 @@
-import { useRef } from "react"
-
 export default function GroupInfo({ onClose, group }) {
 	async function copyGroupIdToClipboard() {
 		await navigator.clipboard.writeText(group.groupId)

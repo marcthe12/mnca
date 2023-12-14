@@ -17,7 +17,15 @@ class SocketMap {
 			id: recv,   
 			user,                           // links to  a userid
 			rtc: new RTCPeerConnection({
-				iceServers: [
+				iceServers: [ {
+					"urls": ["stun:172.26.208.101:3478"],
+
+				},				
+				{
+					"urls": ["turn:172.26.208.101:3478"],
+					username: "chris",
+					credential: "1234"
+				}
 				]
 			}),
 			sendSignal,
@@ -64,7 +72,9 @@ class SocketMap {
 				})
 			},
 			async send(data){
-				const msg = JSON.stringify(data)  
+				console.log(data)
+				const msg = JSON.stringify(data) 
+				console.log(msg) 
 				this.channel.send(msg)
 			}
 		}
