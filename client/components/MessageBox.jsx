@@ -1,7 +1,7 @@
-import Hide from './Hide.jsx'
-import { useState } from 'react'
+import Hide from "./Hide.jsx"
+import { useState } from "react"
 
-export default function MessageBox({ message }) {
+export default function MessageBox({ message,onThread, onDelete }) {
 	const { messageId: id, name, "message": msg, date } = message
 
 	const [menu, setMenu] = useState(false)
@@ -17,7 +17,7 @@ export default function MessageBox({ message }) {
 	async function download() {
 		console.log(msg)
 		const blob = msg instanceof File ? msg : new File([msg], id, { type: "text/plain", lastModified: date })
-		const link = document.createElement('a')
+		const link = document.createElement("a")
 		const blobUrl = URL.createObjectURL(blob)
 		link.download = blob.name
 		link.href = blobUrl
@@ -32,7 +32,7 @@ export default function MessageBox({ message }) {
 		<Hide show={menu}>
 			<div className="relative w-full mt-2 w-48 rounded-md shadow-lg bg-menu-bg ring-1 ring-black ring-opacity-5">
 				<div className="px-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
-					<button
+					<button onClick={() => onThread(message)}
 						className="px-4 py-2 text-menu-text bg-menu-bg hover:bg-menu-hover text-left"
 						role="menuitem"
 					>
@@ -55,6 +55,7 @@ export default function MessageBox({ message }) {
 						</button>
 					</Hide>
 					<button
+						onClick={() => onDelete(message)}
 						className="px-4 py-2 text-menu-text bg-menu-bg hover:bg-menu-hover text-left"
 						role="menuitem"
 					>
@@ -63,21 +64,21 @@ export default function MessageBox({ message }) {
 				</div>
 			</div>
 		</Hide>
-		<h3>{name}</h3>
+		<h3 className="font-bold">{name}</h3>
 		<MessageView message={msg} onDownload={download} />
 		<small><time>{date.toLocaleString()}</time></small>
 	</section>
 }
 
-function MessageView({ message, onDownload }) {
-	if (message instanceof Blob) {
+function MessageView({ message, onDownload}) {
+	if (message instanceof File) {
 		return <button
 			onClick={onDownload}
 			className="block w-full px-4 py-2 text-menu-text bg-menu-bg hover:bg-menu-hover text-left">
-			Download
+			Download - {message.name}
 		</button>
 	}
 	else {
-		return <p>{message}</p>
+		return message.split('\n').map((line, i) => <p className="break-words" key={i}>{line}</p>)
 	}
 }

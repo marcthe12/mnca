@@ -91,7 +91,7 @@ export default function(server){
 				const user = msg.user
 				switch (msg.action) {
 				case "subscribe":{
-					subList.add(user)		
+					subList.add(user)	//bug	
 					broadcastToUser(user, socket.id, msg.action)
 					break
 				}

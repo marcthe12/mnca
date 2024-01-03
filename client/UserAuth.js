@@ -91,15 +91,16 @@ export class UserAuth {
 		this.onMessageGroupChange[groupId]?.(message)
 
 	}
-	async sendNewMessage(groupId,message){
+	async sendNewMessage(groupId,message, parentId){
 		if(message instanceof File){
-			message = {data: await blobToBase64(message)}
+			message = await blobToBase64(message)
 		}
 		const data = {
 			"name": this.data.body.user,
 			message,
 			"date": new Date(),
 			groupId,
+			parentId,
 			"messageId": crypto.getRandomValues(new Uint8Array(8)).toString()
 		}
 		await this.connect.socketMap.sendAllClients(data, this.data.body.user)
@@ -107,20 +108,28 @@ export class UserAuth {
 	}
 	async recieveNewMessage(message){
 		const db = await this.db
+		console.log("arq")
+		console.log(message)
 		message.date = new Date(message.date)
 		if(typeof message.message === "object"){
-			message.message = await Base64ToBlob(message.message.data)
+			message.message = await Base64ToBlob(message.message)
 		}
 		console.log(message)
 		await db.add("messages",message)
+		console.log(this.onMessageGroupChange[message.groupId])
 		await this.getGroupMessages(message.groupId)
 	}
 
-	async addNewMessage(groupId,message) {
-		const msg = await this.sendNewMessage(groupId,message)
+	async addNewMessage(groupId,message, parent) {
+		const msg = await this.sendNewMessage(groupId,message, parent)
 		await this.recieveNewMessage(msg)
+		
 	}
-
+	async removeMessage(message){
+		const db = await this.db
+		db.delete("messages", message.messageId)
+		await this.getGroupMessages(message.groupId)
+	}
 	async signIn(username, password) {
 		const loginRequest = api("/login")
 		const data = await loginRequest({
