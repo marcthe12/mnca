@@ -30,7 +30,7 @@ export default function MainChatArea({ group, isactive }) {
 			}
 			user.getGroupMessages(group.groupId)
 			return () => {
-console.log("Tests")
+				console.log("Tests")
 				user.onMessageGroupChange[group.groupId] = undefined
 			}
 		}, [user])

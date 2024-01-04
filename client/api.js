@@ -1,17 +1,12 @@
 export default function (url, authToken = null) {
-
 	return async function (data) {
-
 		try {
-
 			const headers = {
 				"Content-Type": "application/json"
 			}
 
 			if (authToken) {
-
 				headers.Authorization = `Bearer ${authToken}`
-
 			}
 
 			const response = await fetch(
@@ -23,23 +18,14 @@ export default function (url, authToken = null) {
 				}
 			)
 
-			if (!response.ok) {
-
-				throw new Error("Network response was not ok")
-
-			}
-
 			const responseData = await response.json()
-			return responseData
-
+			return {...responseData, success: response.ok}
 		} catch (error) {
-
 			console.error(
 				"Error:",
 				error
 			)
 			throw error
-
 		}
 
 	}
