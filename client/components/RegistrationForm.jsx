@@ -40,7 +40,7 @@ export default function RegistrationForm() {
 							className="block text-gray-700 text-sm font-bold mb-2"
 							htmlFor="username"
 						>
-							Username
+              Username
 						</label>
 						<input
 							className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -56,7 +56,7 @@ export default function RegistrationForm() {
 							className="block text-gray-700 text-sm font-bold mb-2"
 							htmlFor="password"
 						>
-							Password
+              Password
 						</label>
 						<input
 							className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -72,9 +72,8 @@ export default function RegistrationForm() {
 							type="submit"
 							className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 						>
-							Register
+              Register
 						</button>
-						<p>{user?.errormsg ?? ""}</p>
 					</div>
 				</form>
 			</div>

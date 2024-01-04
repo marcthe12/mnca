@@ -8,7 +8,7 @@ export default function SendBox({ onSend }) {
 	const textArea = useRef(null)
 
 	useLayoutEffect(() => {
-		textArea.current.style.height = "auto"
+		textArea.current.style.height = 'auto'
 		textArea.current.style.height = `${Math.min(0.2 * window.innerHeight,textArea.current.scrollHeight)}px`
 	}, [messageContent])
 

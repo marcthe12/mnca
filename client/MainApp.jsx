@@ -1,10 +1,11 @@
-import { useState } from "react"
-import { useUser } from "./components/UserProvider.jsx"
+import {useState} from "react"
+import {useUser} from "./components/UserProvider.jsx"
 import MainArea from "./components/MainArea.jsx"
 import RegistrationForm from "./components/RegistrationForm.jsx"
 import LoginForm from "./components/LoginForm.jsx"
 
-function Logout() {
+function Logout () {
+
 	const [
 		mode,
 		setMode
@@ -25,9 +26,10 @@ function Logout() {
 
 }
 
-export default function MainApp() {
+export default function MainApp () {
+
 	const user = useUser()
-	console.log(user?.token)
+
 	return user?.token
 		? <MainArea />
 		: <Logout />

@@ -79,6 +79,6 @@ function MessageView({ message, onDownload}) {
 		</button>
 	}
 	else {
-		return message.split("\n").map((line, i) => <p className="break-words" key={i}>{line}</p>)
+		return message.split('\n').map((line, i) => <p className="break-words" key={i}>{line}</p>)
 	}
 }
