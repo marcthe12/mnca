@@ -56,7 +56,9 @@ function broadcastToUser(user, id, action) {
 export default function(server){
 	const wss = new WebSocketServer({ server })
 	wss.on("connection", function(ws, req){
-		const token = new URL(req.url, `ws://${req.headers.host}`).searchParams.get("token")
+		const searchParams = new URL(req.url, `ws://${req.headers.host}`).searchParams
+		const token = searchParams.get("token")
+		const id = searchParams.get("id")
 		var user
 		try{	
 			user = Token.verify(token).user
@@ -67,25 +69,21 @@ export default function(server){
 		
 		const subList = new Set()
 		
-		const socket = { user, ws, id: crypto.randomUUID() }
+		const socket = { user, ws, id }
 		userSessions.add(socket)
 		subList.add(user)		
 		broadcastToUser(user, socket.id, "subscribe")
-
-		console.log(userSessions)
 
 		ws.on("close", function(code, reason){
 			subList.forEach((user) =>
 				broadcastToUser(user, socket.id, "unsubscribe")
 			)
 			userSessions.remove(socket)
-			console.log(userSessions)
 			console.error(code, reason)
 		})
 		ws.on("message", function(message){
 			const msg = JSON.parse(message)
 		
-			console.log(msg)
 			switch (msg.type) {
 			case "normal":{
 				const user = msg.user

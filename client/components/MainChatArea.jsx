@@ -25,12 +25,10 @@ export default function MainChatArea({ group, isactive }) {
 	useEffect(
 		() => {
 			user.onMessageGroupChange[group.groupId] = (message) => {
-				console.log(message)
 				setMessages(message)
 			}
 			user.getGroupMessages(group.groupId)
 			return () => {
-console.log("Tests")
 				user.onMessageGroupChange[group.groupId] = undefined
 			}
 		}, [user])

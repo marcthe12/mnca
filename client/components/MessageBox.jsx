@@ -15,15 +15,12 @@ export default function MessageBox({ message,onThread, onDelete }) {
 	}
 
 	async function download() {
-		console.log(msg)
 		const blob = msg instanceof File ? msg : new File([msg], id, { type: "text/plain", lastModified: date })
 		const link = document.createElement("a")
 		const blobUrl = URL.createObjectURL(blob)
 		link.download = blob.name
 		link.href = blobUrl
-		console.log(link)
 		document.body.append(link)
-		link.click()
 		document.body.removeChild(link)
 		URL.revokeObjectURL(blobUrl)
 	}

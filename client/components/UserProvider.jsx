@@ -7,6 +7,8 @@ export function useUser () {
 	return useContext(UserContex)?.user
 }
 
+const god = new UserAuth()
+
 export function UserContext ({children}) {
 
 	const [
@@ -18,7 +20,7 @@ export function UserContext ({children}) {
 
 	useEffect(
 		() => {
-			user.current = new UserAuth()
+			user.current = god
 			setToken(user.current.token)
 			user.current.onSignin = token => {
 				setToken(token)
