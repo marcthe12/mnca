@@ -1,14 +1,100 @@
+import { useState } from "react"
+import { useUser } from "./UserProvider.jsx"
+import Hide from "./Hide.jsx"
+import api from "../api.js"
+
+function UserItem({ user, onDelete }) {
+	const userContext = useUser()
+	return <li className="p-4 w-full grid grid-cols-[1fr,auto] rounded shadow">
+		<span className="grid-cols-1">{user}</span>
+		<Hide show={user !== userContext.data.body.user}><button className="grid-cols-2 hover:bg-delete-bg text-gray-800 font-bold py-0.2 px-2 rounded-full shadow" onClick={() => onDelete()}>-</button></Hide>
+	</li>
+}
+function UserList({ users, onAdd, onRemove }) {
+	const [search, setSearch] = useState("")
+	const [errorMsg, setErrorMsg] = useState("")
+	const user = useUser()
+
+	async function addUser() {
+		const searchRequest = api("/search", user.token)
+		if (users.includes(search)) {
+			setErrorMsg("User already added!")
+			return
+		}
+		const { success, message = "" } = await searchRequest({ username: search })
+		if (!success) {
+			setErrorMsg(message)
+			return
+		}
+		await onAdd(search)
+	}
+	async function removeUser(user) {
+		await onRemove(user)
+	}
+
+	return <div className=" px-2 border w-full h-40 overflow-auto">
+		<div>
+			<input
+				type="search"
+				className="border"
+				value={search}
+				onChange={(e) => setSearch(e.target.value)} />
+			<button className="hover:bg-secondary-bg text-gray-800 font-semibold px-2 rounded shadow" onClick={() => addUser(users)}>Add User</button>
+			<Hide show={errorMsg}><p>{errorMsg}</p></Hide>
+		</div>
+		<ul>
+			{users.map((user, index) => (<UserItem key={index} user={user} onDelete={() => removeUser(user)} />))}
+		</ul>
+	</div>
+}
+
+
 export default function GroupInfo({ onClose, group }) {
+	const [name, setName] = useState(group.name)
+	const user = useUser()
+
 	async function copyGroupIdToClipboard() {
 		await navigator.clipboard.writeText(group.groupId)
 	}
 
+	function rename() {
+		user.renameGroup(name, { ...group, name })
+	}
+
+	async function AddUsers(userId) {
+		await user.addUser(userId, { ...group, users: [...group.users, userId] })
+		await user.addGroupCall(userId, group)
+	}
+
+	async function RmUsers(userId) {
+		await user.removeUser(userId, { ...group, users: group.users.filter(e => e !== userId) })
+		await user.deleteGroupCall(userId, group.groupId)
+	}
+
+	function gDelete() {
+		user.deleteGroup(group.groupId)
+	}
+
 	return (
-		<div className="p-4">
-			<h2 className="text-2xl font-semibold mb-4 text-menu-text">{group.name}</h2>
-			<div className="flex flex-col">
-				<label className="text-gray-700 mb-2">Group ID:</label>
-				<div className="flex items-center mb-2">
+		<div className="p-4 space-y-4">
+			<div className="grid grid-cols-[1fr,auto] gap-4">
+				<input
+					type="text"
+					className="w-full text-2xl font-semibold mb-4 text-menu-text"
+					value={name}
+					onChange={(e) => setName(e.target.value)}
+					placeholder="Enter a new name"
+				/>
+				<button
+					onClick={rename}
+					className="px-3 bg-secondary-bg text-white rounded-md hover:bg-primary-dark"
+				>
+					Rename
+				</button>
+			</div>
+			<div className="flex flex-col space-y-4">
+				<label className="text-gray-700">Group ID:</label>
+				<div className="flex items-center space-x-2">
 					<input
 						type="text"
 						value={group.groupId}
@@ -17,18 +103,29 @@ export default function GroupInfo({ onClose, group }) {
 					/>
 					<button
 						onClick={copyGroupIdToClipboard}
-						className="px-4 py-2 bg-primary-bg text-white rounded-md hover:bg-primary-dark ml-2"
+						className="px-4 py-2 bg-primary-bg text-white rounded-md hover:bg-primary-dark"
 					>
 						Copy
 					</button>
 				</div>
-				<button
-					onClick={onClose}
-					className="px-4 py-2 bg-primary-bg text-white rounded-md hover:bg-primary-dark"
-				>
-					Close
-				</button>
+				<UserList users={group.users} onAdd={AddUsers} onRemove={RmUsers} />
+				<div className="inline-flex space-x-2">
+					<button
+						onClick={onClose}
+						className="flex-1 px-4 py-2 bg-primary-bg text-white rounded-l-md hover:bg-primary-dark"
+					>
+						Close
+					</button>
+					<button
+						onClick={gDelete}
+						className="flex-1 px-4 py-2 bg-delete-bg text-white rounded-r-md hover:bg-primary-dark"
+					>
+						Delete
+					</button>
+				</div>
+
 			</div>
 		</div>
 	)
+
 }

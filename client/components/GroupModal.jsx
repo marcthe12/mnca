@@ -1,7 +1,8 @@
 import {useState} from "react"
+import { useUser } from "./UserProvider"
 
 export default function GroupModal ({onCreate, onClose}) {
-
+	const user = useUser()
 	const [name, setName] = useState("")
 	const [id, setID]  = useState(crypto.getRandomValues(new Uint8Array(8)).toString())
 	return <>

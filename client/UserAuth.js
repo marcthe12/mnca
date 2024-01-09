@@ -47,16 +47,22 @@ export class UserAuth {
 		this.db = this.token
 			? await openDB(
 				this.data.body.user,
-				4,
+				5,
 				{
 					upgrade(db) {
-
+						db.createObjectStore(
+							"id"
+						)
 						db.createObjectStore(
 							"groups",
 							{ "keyPath": "groupId" }
 						)
-						db.createObjectStore(
-							"id"
+						db.createObjectStore( //events
+							"groupsLog",
+							{ "keyPath": "OpId" }
+						)
+						db.createObjectStore( //vector clock
+							"groupsVersion",
 						)
 						const messageStore = db.createObjectStore(
 							"messages",
@@ -67,19 +73,62 @@ export class UserAuth {
 							"groupId",
 							{ "unique": false }
 						)
-
+						const messageLogs = db.createObjectStore(
+							"messagesLogs",
+							{ "keyPath": "OpId" }
+						)
+						messageLogs.createIndex(
+							"groupIndex",
+							"groupId",
+							{ "unique": false }
+						)
+						db.createObjectStore(
+							"messagesVersion",
+							{ "keyPath": "groupId" }
+						)
+						db.createObjectStore(
+							"files",
+							{ "keyPath": "hash" }
+						)
 					}
 				}
 			)
 			: null
 	}
 	async getGroups() {
-		const message = await this.db?.getAll("groups") ?? []
-		this.onGroupChange?.(message)
+		const group = await this.db?.getAll("groups") ?? []
+		this.onGroupChange?.(group)
+	}
+
+	async addGroupCall(user, groupobjects) {
+		this.connect.sendNormal({ action: "join", user, group: groupobjects})
 	}
 
 	async addGroup(groupobjects) {
 		await this.db.add("groups", groupobjects)
+		await this.getGroups()
+	}
+	async addUser(user, groupobjects) {
+		await this.db.put("groups", groupobjects)
+		this.connect.socketMap.addUser(user)
+		await this.getGroups()
+	}
+	async removeUser(user, groupobjects) {
+		await this.db.put("groups", groupobjects)
+		this.connect.socketMap.removeUser(user)
+		await this.getGroups()
+	}
+	async renameGroup(name, groupobjects) {
+		await this.db.put("groups", groupobjects)
+		await this.getGroups()
+	}
+
+	async deleteGroupCall(user, id) {
+		this.connect.sendNormal({ action: "leave", user, groupId: id})
+	}
+
+	async deleteGroup(id) {
+		await this.db.delete("groups", id)
 		await this.getGroups()
 	}
 	async getGroupMessages(groupId) {
@@ -98,7 +147,7 @@ export class UserAuth {
 		this.onMessageGroupChange[groupId]?.(message)
 
 	}
-	async sendNewMessage(groupId, message, parentId) {
+	async sendNewMessage(group, message, parentId) {
 		if (message instanceof File) {
 			message = await blobToBase64(message)
 		}
@@ -106,11 +155,11 @@ export class UserAuth {
 			"name": this.data.body.user,
 			message,
 			"date": new Date(),
-			groupId,
+			groupId: group.groupId,
 			parentId,
 			"messageId": crypto.getRandomValues(new Uint8Array(8)).toString()
 		}
-		await this.connect.socketMap.sendAllClients(data, this.data.body.user)
+		await this.connect.socketMap.sendAllClients(data, ...group.users)
 		return data
 	}
 	async recieveNewMessage(message) {

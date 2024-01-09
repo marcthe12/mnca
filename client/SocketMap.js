@@ -1,16 +1,31 @@
 export class SocketMap {
-	constructor() {
-		this.mapping = new Map();
+	constructor(conn) {
+		this.mapping = new Map()
+		this.userIndex = new Map()
+		this.userIndex.set(conn.getuserauth.data.body.user, [])
+		this.ws = conn
 	}
+	addUser(user) {
+		if (!this.userIndex.has(user)) {
+			this.userIndex.set(user, [])
+			this.ws.sendNormal({ action: "subscribe", user })
+		}
+	}
+	removeUser(user) {
+		if (this.userIndex.delete(user)) {
+			this.ws.sendNormal({ action: "unsubscribe", user })
+		}
+	}
+
 	get(key) {
-		return this.mapping.get(key);
+		return this.mapping.get(key)
 	}
 	has(key) {
-		return this.mapping.has(key);
+		return this.mapping.has(key)
 	}
 	create(recv, user, sendSignal, polite = true) {
-		let makingOffer = false;
-		let ignoreOffer = false;
+		let makingOffer = false
+		let ignoreOffer = false
 
 		const conn = {
 			id: recv,
@@ -28,116 +43,118 @@ export class SocketMap {
 			}),
 			sendSignal,
 			close() {
-				this.rtc.close();
+				this.rtc.close()
 			},
 			async onOffer(offer) {
-				const offerCollision = offer.type === "offer" && (makingOffer || this.rtc.signalingState !== "stable");
+				const offerCollision = offer.type === "offer" && (makingOffer || this.rtc.signalingState !== "stable")
 
-				ignoreOffer = !polite && offerCollision;
+				ignoreOffer = !polite && offerCollision
 				if (ignoreOffer) {
-					return;
+					return
 				}
 
-				await this.rtc.setRemoteDescription(offer);
+				await this.rtc.setRemoteDescription(offer)
 				if (offer.type === "offer") {
-					await this.rtc.setLocalDescription();
+					await this.rtc.setLocalDescription()
 					this.sendSignal({
 						action: "offer",
 						offer: this.rtc.localDescription
-					});
+					})
 				}
 			},
 			async onIceCandidate(candidate) {
 				try {
-					await this.rtc.addIceCandidate(candidate);
+					await this.rtc.addIceCandidate(candidate)
 				} catch (err) {
 					if (!ignoreOffer) {
-						throw err;
+						throw err
 					}
 				}
 			},
 			onRecieve: (...args) => this.handleRecieve(...args),
 			setupDataChannel(channel) {
 				channel.addEventListener("open", () => {
-					this.channel = channel;
-				});
+					this.channel = channel
+				})
 
 				channel.addEventListener("message", async (event) => {
-					const message = JSON.parse(event.data);
-					await this.onRecieve(message);
+					const message = JSON.parse(event.data)
+					await this.onRecieve(message)
 
-				});
+				})
 			},
 			async send(data) {
-				const msg = JSON.stringify(data);
-				this.channel.send(msg);
+				const msg = JSON.stringify(data)
+				this.channel.send(msg)
 			}
-		};
-		this.mapping.set(recv, conn);
-		this.handleChange();
+		}
+		console.log(conn)
+		this.mapping.set(recv, conn)
+		this.userIndex.get(user).push(conn)
+		this.handleChange()
 		conn.rtc.addEventListener("negotiationneeded", async function () {
 			try {
-				makingOffer = true;
-				await this.setLocalDescription();
+				makingOffer = true
+				await this.setLocalDescription()
 				conn.sendSignal({
 					action: "offer",
 					offer: this.localDescription
-				});
+				})
 			} finally {
-				makingOffer = false;
+				makingOffer = false
 			}
-		});
+		})
 
 		conn.rtc.addEventListener("icecandidate", async function ({ candidate }) {
 			if (candidate !== null) {
 				conn.sendSignal({
 					action: "icecandidate",
 					candidate,
-				});
+				})
 			}
-		});
+		})
 		conn.rtc.addEventListener("connectionstatechange", () => {
-			this.handleChange();
-		});
+			this.handleChange()
+		})
 
 		conn.rtc.addEventListener("oniceconnectionstatechange", function () {
 			if (this.iceConnectionState === "failed") {
-				this.restartIce();
+				this.restartIce()
 			}
-		});
+		})
 
 		conn.rtc.addEventListener("datachannel", async function ({ channel }) {
-			conn.setupDataChannel(channel);
-		});
+			conn.setupDataChannel(channel)
+		})
 
-		return conn;
+		return conn
 	}
 	async sendAllClients(data, ...user) {
-		await Promise.all(this.getAllClients(...user).map((client) => client.send(data)));
+		await Promise.all(this.getAllClients(...user).map((client) => client.send(data)))
 	}
-	getAllClients(...user) {
-		const userlist = new Set(user);
-		return this.values.filter(({ user }) => userlist.has(user));
+	getAllClients(...users) {
+		return users.flatMap(user => this.userIndex.get(user))
 	}
 	handleChange() {
-		this.onChange?.(this.values);
+		this.onChange?.(this.values)
 	}
 	async handleRecieve(message) {
-		await this.onRecieve?.(message);
+		await this.onRecieve?.(message)
 	}
 	delete(key) {
-		this.get(key).close();
-		const ret = this.mapping.delete(key);
-		this.handleChange();
-		return ret;
+		const socket = this.get(key)
+		socket.close()
+		if (this.mapping.delete(key)) {
+			const userSockets = this.userIndex.get(socket.user)
+			userSockets.splice(userSockets.indexOf(socket), 1)
+			this.handleChange()
+		}
 	}
 	clear() {
-		this.mapping.forEach((val, key) => {
-			this.delete(key);
-		});
+		this.mapping.forEach((val, key) => this.delete(key))
 	}
 
 	get values() {
-		return Array.from(this.mapping.values());
+		return Array.from(this.mapping.values())
 	}
 }

@@ -19,7 +19,7 @@ export default function MainChatArea({ group, isactive }) {
 		setMsgStack(msgStack.slice(1))
 	}
 	async function SendHandler(message) {
-		user.addNewMessage(group.groupId, message, msgStack[0]?.messageId)
+		user.addNewMessage(group, message, msgStack[0]?.messageId)
 	}
 
 	useEffect(
@@ -47,7 +47,7 @@ export default function MainChatArea({ group, isactive }) {
 				<Hide show={msgStack.length != 0}>
 					<button className="inline p-2" onClick={PopFromStack}>X</button>
 				</Hide>
-				<h2 className="inline p-4 " onClick={() => ModalOpen()}>{group.name}</h2>
+				<button className="inline font-bold cursor-pointer shadow px-3 py-1" onClick={() => ModalOpen()}>{group.name}</button>
 			</div>
 			<Modal show={isModalOpen}>
 				<GroupInfo group={group} onClose={() => ModalClose()} />

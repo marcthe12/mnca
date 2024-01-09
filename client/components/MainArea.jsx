@@ -3,6 +3,7 @@ import MainChatArea from "./MainChatArea.jsx"
 import TabButton from "./TabButton.jsx"
 import UserMenu from "./UserMenu.jsx"
 import { useUser } from "./UserProvider.jsx"
+
 export default function MainArea() {
 	const user = useUser()
 	const [activeTab, setActiveTab] = useState(0)

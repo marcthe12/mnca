@@ -4,8 +4,8 @@ import Modal from "./Modal.jsx"
 import Menu from "./Menu.jsx"
 import {useUser} from "./UserProvider.jsx"
 import PeersConnectedModalContent from "./PeersConnectedModalContent.jsx"
-export default function UserMenu ({onGroupCreate}) {
 
+export default function UserMenu ({onGroupCreate}) {
 	const user = useUser()
 	const [
 		showCreateGroupModal,
@@ -19,7 +19,6 @@ export default function UserMenu ({onGroupCreate}) {
 
 	function closePeersConnectedmodal () {
 		setShowPeersConnectedModal(false)
-
 	}
 
 	function openPeersConnectedModal() {
@@ -30,21 +29,14 @@ export default function UserMenu ({onGroupCreate}) {
 		setShowCreateGroupModal(true)
 	}
 
-	async function handleCreateGroup (name) {
-		onGroupCreate(name)
+	async function handleCreateGroup (group) {
+		onGroupCreate({...group, users: [user.data.body.user]})
 		closegroupmodal()
 	}
-	
 
 	return (
 		<div className="flex items-center justify-between px-4 py-2 bg-secondary-bg shadow-md">
 			<div className="flex items-center space-x-4">
-				<img
-					src="https://placekitten.com/250/250" // Replace with your actual image URL
-					width={40}
-					height={40}
-					alt="User Avatar"
-					className="rounded-full" />
 				<div>
 					<p className="font-semibold">{user.data.body.user}</p>
 					<p className="text-lime-50">Online</p>
