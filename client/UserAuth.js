@@ -58,14 +58,142 @@ class VectorClock extends GCounter {
 		return ret
 	}
 }
+class Group {
+	constructor(userAuth, groupId) {
+		this.userAuth = userAuth
+		this.groupId = groupId
+	}
+	get db() {
+		return this.userAuth.db
+	}
+	get replicaId() {
+		return this.userAuth.clientID
+	}
+	async open() {
+		const version = await this.db.get("groupVersion", this.groupId)
+		this.version = new VectorClock(version)
+	}
+	async initialize(users) {
+	//	await this.db.add("groupState", { groupId: this.groupId, users, name: "", messages: [] })
+	await this.store()
+	}
+	async delete() {
+		await this.db.delete("groupState", this.groupId)
+		await this.db.delete("groupVersion", this.groupId)
+		const toDelete = await this.db.getAllKeysFromIndex("groupLogs", "groupIndex") ?? []
+		const trans = this.db.transaction("groupLog", "readwrite")
+		await Promise.all(toDelete.map(k => trans.store.delete(k)))
+		await trans.done
+	}
+
+	async getState() {
+		return await this.db.get("groupState", this.groupId)
+	}
+	async getValue() {
+		const value = await this.getState()
+		value.name = value.name.value
+		value.users = new Set(value.users.values())
+		value.messages = [...new Set(value.messages.values())]
+		return value
+	}
+	async event(operation, params) {
+		const version = this.version.clone()
+		const event = {
+			groupId: this.groupId,
+			id: this.replicaId,
+			version,
+			OpId: crypto.randomUUID(),
+			operation,
+			...params
+		}
+		event.version.increment(event.id)
+		this.version.merge(event.version)
+		await this.db.put("groupVersion", this.version.state, 1)
+		await this.store(event)
+	}
+	async store(...events) {
+		const transx = this.db.transaction("groupLog", "readwrite")
+		await Promise.all([...events.map(event => transx.store.add({ ...event, version: event.version.state })), transx.done])
+		events = await this.db.getAll("groupLog")
+		events.sort((a, b) => {
+			const ver_a = new VectorClock(a.version)
+			const ver_b = new VectorClock(b.version)
+			switch (ver_a.compare(ver_b)) {
+				case "less": return -1
+				case "greater": return 1
+				case "equal":
+				case "concurrent":
+					return 0;
+			}
+		})
+		const group = {
+			groupId: this.groupId,
+			users: new Map(),
+			name: { value: "", timestamp: { time: 0 } },
+			messages: new Map()
+		}
+		for (const event of events) {
+			switch (event.operation) {
+				case 'rename':
+					if(event.timestamp.time > group.name.timestamp.time || (event.timestamp.time === group.name.timestamp.time && event.timestamp.id > group.name.timestamp.id)){
+						group.name.value = event.name
+						group.name.timestamp = event.timestamp
+					}
+					break
+				case 'removeUser':
+					event.uuids.map(uuid => group.users.delete(uuid))
+					break
+				case 'addUser':
+					group.users.set(event.uuid,event.user)
+					break
+				case 'addMessage':
+					group.messages.set(event.uuid,event.message)
+					break
+				case 'removeMessage':
+					event.uuids.map(uuid => group.messages.delete(uuid))
+					break
+			}
+		}
+		await this.db.put("groupState", group)
+		await this.userAuth.getGroups()
+	}
+	async rename(name) {
+		await this.event("rename", { name, timestamp: { time: Date.now(), id: this.id } })
+	}
+	async removeUser(user) {
+		const state = await this.getState()
+		const uuids = [...state.users].filter(([key, val]) => val === user).map(([key, val]) => key)
+		await this.event("removeUser", { uuids })
+	}
+	async addUser(user) {
+		await this.event("addUser", { user, uuid: crypto.randomUUID() })
+	}
+	async addMessage(message) {
+		await this.event("addMessage", { message, uuid: crypto.randomUUID() })
+	}
+	async removeMessage(messageId) {
+		const state = await this.getState()
+		const uuids = [...state.messages].filter(([key, val]) => val === messageId).map(([key, val]) => key)
+		await this.event("removeMessage", { uuids })
+	}
+}
 
 class GroupMap {
 	constructor(userAuth) {
 		this.userAuth = userAuth
 	}
-	async loadVersion() {
-		const state = await this.userAuth.db.get("groupsVersion", 1)
-		this.version = new VectorClock(state)
+	async open() {
+		const version = await this.db.get("groupMapVersion", 1)
+		this.version = new VectorClock(version)
+		const gids = new Set(await this.db.getAll("groupMapState"))
+		this.map = new Map(await Promise.all([...gids].map(async gid => {
+			const groups = new Group(this.userAuth, gid)
+			await groups.open()
+			return [gid, groups]
+		})))
+	}
+	get db() {
+		return this.userAuth.db
 	}
 	get replicaId() {
 		return this.userAuth.clientID
@@ -75,29 +203,109 @@ class GroupMap {
 		const event = { id: this.replicaId, version, OpId: crypto.randomUUID(), operation, ...params }
 		event.version.increment(event.id)
 		this.version.merge(event.version)
-		await this.userAuth.db.put("groupsVersion", this.version.state, 1)
+		await this.db.put("groupMapVersion", this.version.state, 1)
 		await this.store(event)
 	}
 	async store(...events) {
-		await Promise.all(events.map(event => this.userAuth.db.add("groupsLog", { ...event, version: event.version.state })))
-		//To do: fix sort and replay
+		const transx = this.db.transaction("groupMapLog", "readwrite")
+		await Promise.all([...events.map(event => transx.store.add({ ...event, version: event.version.state })), transx.done])
+		events = await this.db.getAll("groupMapLog")
+		events.sort((a, b) => {
+			const ver_a = new VectorClock(a.version)
+			const ver_b = new VectorClock(b.version)
+			switch (ver_a.compare(ver_b)) {
+				case "less": return -1
+				case "greater": return 1
+				case "equal":
+				case "concurrent":
+					return 0;
+			}
+		})
+		const map = new Map()
+		const transy = this.db.transaction("groupMapState", "readwrite")
+		await transy.store.clear()
 		for (const event of events) {
 			switch (event.operation) {
 				case 'join':
-					this.userAuth.db.add("groups", event.group)
+					await transy.store.add(event.groupId, event.uuid)
+					map.set(event.uuid, {
+						groupId: event.groupId,
+						users: event.users,
+					})
 					break
 				case 'leave':
-					await this.userAuth.db.delete("groups", event.groupId)
+					await Promise.all(event.uuids.map(uuid => transy.store.delete(uuid)))
+					event.uuids.map(uuid => map.delete(uuid))
 					break
 			}
 		}
+		await transy.done
+		const gState = [...map.values()].reduce((acc, current) => {
+			if (acc.has(current.groupId)) {
+				const existingEntry = acc.get(current.groupId)
+				existingEntry.users = new Set([...existingEntry.users, ...current.users]);
+			} else {
+				acc.set(current.groupId, current);
+			}
+			return acc;
+		}, new Map())
+
+		console.log(gState)
+		console.log(this.map)
+		await Promise.all([...this.map].filter(([k, v]) => !gState.has(k)).map(([k, v]) => v.delete()))
+		await Promise.all([...gState].filter(([k, v]) => !this.map.has(k)).map(async ([k, v]) => {
+			const group = new Group(this.userAuth, k)
+			await group.open()
+			await group.initialize(v.users)
+			this.map.set(k, group)
+		}))
 		await this.userAuth.getGroups()
 	}
-	async joinGroup(group) {
-		await this.event("join", { group })
+	async getState() {
+		const trans = this.db.transaction("groupMapState", "readonly")
+		const [keys, values] = await Promise.all([
+			trans.store.getAllKeys(),
+			trans.store.getAll(),
+		])
+		await trans.done
+		return new Map(keys.map((key, i) => [key, values[i]]))
 	}
+
+	async getValue() {
+		const groupIds = new Set((await this.getState()).values())
+		const group = await Promise.all([...groupIds].map(async (k, v) => await this.map?.get(k)?.getValue()))
+		return group.filter(v => v !== undefined)
+	}
+
+	async joinGroup(group) {
+		await this.event("join", {
+			groupId: group.groupId,
+			users: group.users,
+			uuid: crypto.randomUUID()
+		})
+	}
+
 	async leaveGroup(id) {
-		await this.event("leave", { groupId: id })
+		const state = await this.getState()
+		const uuids = [...state].filter(([key, val]) => val === id).map(([key, val]) => key)
+		await this.event("leave", { uuids })
+	}
+	async rename(id, name) {
+		console.log(id)
+		console.log(this.map)
+		return await this.map.get(id).rename(name)
+	}
+	async removeUser(id, user) {
+		return await this.map.get(id).removeUser(user)
+	}
+	async addUser(id, user) {
+		return await this.map.get(id).addUser(user)
+	}
+	async addMessage(id, message) {
+		return await this.map.get(id).addMessage(message)
+	}
+	async removeMessage(id, messageId) {
+		return await this.map.get(id).removeMessage(messageId)
 	}
 }
 
@@ -122,10 +330,11 @@ export class UserAuth {
 			}
 			this.clientID = client[0]
 			this.groupMap = new GroupMap(this)
-			this.groupMap.loadVersion()
+			this.groupMap.open()
 			this.connect = new SocketInit(this)
 			this.connect.socketMap.onRecieve = async message => await this.recieveNewMessage(message)
 			localStorage.setItem("token", value)
+			await this.getGroups()
 			this.onSignin?.(value)
 		}
 		else {
@@ -155,37 +364,30 @@ export class UserAuth {
 							"id"
 						)
 						db.createObjectStore(
-							"groups",
-							{ "keyPath": "groupId" }
+							"groupMapState",
 						)
 						db.createObjectStore( //events
-							"groupsLog",
+							"groupMapLog",
 							{ "keyPath": "OpId" }
 						)
 						db.createObjectStore( //vector clock
-							"groupsVersion",
+							"groupMapVersion",
 						)
-						const messageStore = db.createObjectStore(
-							"messages",
-							{ "keyPath": "messageId" }
+						db.createObjectStore(
+							"groupState",
+							{ "keyPath": "groupId" }
 						)
-						messageStore.createIndex(
-							"groupIndex",
-							"groupId",
-							{ "unique": false }
-						)
-						const messageLogs = db.createObjectStore(
-							"messagesLogs",
+						const groupLogs = db.createObjectStore(
+							"groupLog",
 							{ "keyPath": "OpId" }
 						)
-						messageLogs.createIndex(
+						groupLogs.createIndex(
 							"groupIndex",
 							"groupId",
 							{ "unique": false }
 						)
 						db.createObjectStore(
-							"messagesVersion",
-							{ "keyPath": "groupId" }
+							"groupVersion"
 						)
 						db.createObjectStore(
 							"files",
@@ -197,32 +399,28 @@ export class UserAuth {
 			: null
 	}
 	async getGroups() {
-		const group = await this.db?.getAll("groups") ?? []
+		const group = await this.groupMap?.getValue() ?? []
 		this.onGroupChange?.(group)
 	}
 
-	async addGroupCall(user, groupobjects) {
-		this.connect.sendNormal({ action: "join", user, group: groupobjects })
+	async addGroupCall(user, group) {
+		this.connect.sendNormal({ action: "join", user, group: { users: [...group.users], groupId: group.groupId } })
 	}
 
 	async addGroup(groupobjects) {
-		// await this.db.add("groups", groupobjects)
-		// await this.getGroups()
 		await this.groupMap.joinGroup(groupobjects)
 	}
 	async addUser(user, groupobjects) {
-		await this.db.put("groups", groupobjects)
 		this.connect.socketMap.addUser(user)
-		await this.getGroups()
+		await this.groupMap.addUser(groupobjects.groupId, user)
 	}
 	async removeUser(user, groupobjects) {
-		await this.db.put("groups", groupobjects)
 		this.connect.socketMap.removeUser(user)
-		await this.getGroups()
+		await this.groupMap.removeUser(groupobjects.groupId, user)
 	}
+
 	async renameGroup(name, groupobjects) {
-		await this.db.put("groups", groupobjects)
-		await this.getGroups()
+		await this.groupMap.rename(groupobjects.groupId, name)
 	}
 
 	async deleteGroupCall(user, id) {
@@ -230,26 +428,9 @@ export class UserAuth {
 	}
 
 	async deleteGroup(id) {
-		//await this.db.delete("groups", id)
-		//await this.getGroups()
 		await this.groupMap.leaveGroup(id)
 	}
-	async getGroupMessages(groupId) {
-		const message = await this.db?.getAllFromIndex(
-			"messages",
-			"groupIndex",
-			groupId
-		) ?? []
-		message.sort((a, b) => {
-			const dateA = new Date(a.date)
-			const dateB = new Date(b.date)
-			return dateA - dateB
 
-		})
-
-		this.onMessageGroupChange[groupId]?.(message)
-
-	}
 	async sendNewMessage(group, message, parentId) {
 		if (message instanceof File) {
 			message = await blobToBase64(message)
@@ -270,19 +451,20 @@ export class UserAuth {
 		if (typeof message.message === "object") {
 			message.message = await Base64ToBlob(message.message)
 		}
-		await this.db.add("messages", message)
-		await this.getGroupMessages(message.groupId)
+		await this.groupMap.addMessage(message.groupId, message)
 	}
-
+	//1. In groupMap, create a method that takes groupId and data such as user, message etc, 
+	//2. Add a method in group class that does the actual work in the DB. The groupMap method calls this method by 
+	//the use of this.map.get(groupId) (retrive the instance of group)
 	async addNewMessage(groupId, message, parent) {
 		const msg = await this.sendNewMessage(groupId, message, parent)
 		await this.recieveNewMessage(msg)
 
 	}
 	async removeMessage(message) {
-		this.db.delete("messages", message.messageId)
-		await this.getGroupMessages(message.groupId)
+		await this.groupMap.removeMessage(message.groupId, message.messageId)
 	}
+
 	async signIn(username, password) {
 		const loginRequest = api("/login")
 		const data = await loginRequest({
@@ -299,6 +481,7 @@ export class UserAuth {
 
 
 }
+
 function JWTdecode(token) {
 
 	const list = token.split(".")

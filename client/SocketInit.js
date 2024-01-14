@@ -13,7 +13,7 @@ export class SocketInit {
 		}
 		this.result = new WebSocket(url)
 		this.result.addEventListener("open", async () => {
-			const group = await this.getuserauth.db?.getAll("groups") ?? []
+			const group = await this.getuserauth.groupMap.getValue()
 			group.flatMap(group => group.users).forEach(user => this.socketMap.addUser(user))
 			this.result.addEventListener("message", async ({ data }) => {
 				this.handleMessage(data)
@@ -63,7 +63,12 @@ export class SocketInit {
 					}
 					case "join": {
 						this.send("", { ref: message.ackid })
-						this.getuserauth.addGroup(message.group)
+						this.getuserauth.addGroup({
+							groupId: message.group.groupId, 
+							users: new Set(message.group.users),
+							messages: [],
+							name: ""
+						})
 					}
 					case "leave": {
 						this.send("", { ref: message.ackid })

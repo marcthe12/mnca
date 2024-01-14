@@ -1,11 +1,11 @@
-import {useState} from "react"
+import { useState } from "react"
 import GroupModal from "./GroupModal.jsx"
 import Modal from "./Modal.jsx"
 import Menu from "./Menu.jsx"
-import {useUser} from "./UserProvider.jsx"
+import { useUser } from "./UserProvider.jsx"
 import PeersConnectedModalContent from "./PeersConnectedModalContent.jsx"
 
-export default function UserMenu ({onGroupCreate}) {
+export default function UserMenu({ onGroupCreate }) {
 	const user = useUser()
 	const [
 		showCreateGroupModal,
@@ -13,11 +13,11 @@ export default function UserMenu ({onGroupCreate}) {
 	] = useState(false)
 	const [showPeersConnectedModal, setShowPeersConnectedModal] = useState(false)
 
-	function closegroupmodal () {
+	function closegroupmodal() {
 		setShowCreateGroupModal(false)
 	}
 
-	function closePeersConnectedmodal () {
+	function closePeersConnectedmodal() {
 		setShowPeersConnectedModal(false)
 	}
 
@@ -25,12 +25,16 @@ export default function UserMenu ({onGroupCreate}) {
 		setShowPeersConnectedModal(true)
 	}
 
-	function opengroupmodal () {
+	function opengroupmodal() {
 		setShowCreateGroupModal(true)
 	}
 
-	async function handleCreateGroup (group) {
-		onGroupCreate({...group, users: [user.data.body.user]})
+	async function handleCreateGroup(group) {
+		onGroupCreate({
+			...group,
+			users: new Set([user.data.body.user]),
+			messages: []
+		})
 		closegroupmodal()
 	}
 

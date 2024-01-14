@@ -4,7 +4,7 @@ import { useUser } from "./UserProvider"
 export default function GroupModal ({onCreate, onClose}) {
 	const user = useUser()
 	const [name, setName] = useState("")
-	const [id, setID]  = useState(crypto.getRandomValues(new Uint8Array(8)).toString())
+	const [id, setID]  = useState(crypto.randomUUID())
 	return <>
 		<h2 className="text-xl font-semibold mb-4 text-menu-text">Create a New Group</h2>
 		<div className="mb-4 ">

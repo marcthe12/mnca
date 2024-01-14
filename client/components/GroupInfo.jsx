@@ -17,7 +17,7 @@ function UserList({ users, onAdd, onRemove }) {
 
 	async function addUser() {
 		const searchRequest = api("/search", user.token)
-		if (users.includes(search)) {
+		if (users.has(search)) {
 			setErrorMsg("User already added!")
 			return
 		}
@@ -43,7 +43,7 @@ function UserList({ users, onAdd, onRemove }) {
 			<Hide show={errorMsg}><p>{errorMsg}</p></Hide>
 		</div>
 		<ul>
-			{users.map((user, index) => (<UserItem key={index} user={user} onDelete={() => removeUser(user)} />))}
+			{[...users].map((user, index) => (<UserItem key={index} user={user} onDelete={() => removeUser(user)} />))}
 		</ul>
 	</div>
 }
@@ -62,12 +62,14 @@ export default function GroupInfo({ onClose, group }) {
 	}
 
 	async function AddUsers(userId) {
-		await user.addUser(userId, { ...group, users: [...group.users, userId] })
+		await user.addUser(userId, { ...group, users: new Set([...group.users, userId]) })
 		await user.addGroupCall(userId, group)
 	}
 
 	async function RmUsers(userId) {
-		await user.removeUser(userId, { ...group, users: group.users.filter(e => e !== userId) })
+		const newGroupObj = { ...group, users: new Set(group.users) }
+		newGroupObj.users.delete(userId)
+		await user.removeUser(userId, newGroupObj)
 		await user.deleteGroupCall(userId, group.groupId)
 	}
 
