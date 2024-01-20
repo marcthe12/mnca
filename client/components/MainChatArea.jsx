@@ -24,17 +24,6 @@ export default function MainChatArea({ group, isactive }) {
 		user.addNewMessage(group, message, msgStack[0]?.messageId)
 	}
 
-	// useEffect(
-	// 	() => {
-	// 		user.onMessageGroupChange[group.groupId] = (message) => {
-	// 			setMessages(message)
-	// 		}
-	// 		user.getGroupMessages(group.groupId)
-	// 		return () => {
-	// 			user.onMessageGroupChange[group.groupId] = undefined
-	// 		}
-	// 	}, [user])
-
 	const ModalOpen = () => {
 		setModalState(true)
 	}
@@ -55,7 +44,7 @@ export default function MainChatArea({ group, isactive }) {
 				<GroupInfo group={group} onClose={() => ModalClose()} />
 			</Modal>
 			<div className="grid-row-2 overflow-y-auto">
-				{messages
+				{[...messages]
 					.filter(message =>
 						message.messageId == msgStack[0]?.messageId || message.parentId == msgStack[0]?.messageId
 					).map((message) =>

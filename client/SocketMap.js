@@ -1,19 +1,22 @@
-export class SocketMap {
+export default class SocketMap {
 	constructor(conn) {
 		this.mapping = new Map()
 		this.userIndex = new Map()
-		this.userIndex.set(conn.getuserauth.data.body.user, [])
 		this.ws = conn
+		this.addUser(conn.getuserauth.data.body.user, [])
 	}
-	addUser(user) {
+	async addUser(user) {
 		if (!this.userIndex.has(user)) {
+			if (typeof user !== "string") {
+				throw new Error(`Invalid argument (${user}) provided to method. Expected a string`)
+			}
 			this.userIndex.set(user, [])
-			this.ws.sendNormal({ action: "subscribe", user })
+			await this.ws.sendNormal({ action: "subscribe", user })
 		}
 	}
-	removeUser(user) {
+	async removeUser(user) {
 		if (this.userIndex.delete(user)) {
-			this.ws.sendNormal({ action: "unsubscribe", user })
+			await this.ws.sendNormal({ action: "unsubscribe", user })
 		}
 	}
 
@@ -32,10 +35,10 @@ export class SocketMap {
 			user,
 			rtc: new RTCPeerConnection({
 				iceServers: [{
-					"urls": ["stun:172.26.208.101:3478"],
+					"urls": ["stun:172.18.141.254:3478"],
 				},
 				{
-					"urls": ["turn:172.26.208.101:3478"],
+					"urls": ["turn:172.18.141.254:3478"],
 					username: "chris",
 					credential: "1234"
 				}
@@ -56,7 +59,7 @@ export class SocketMap {
 				await this.rtc.setRemoteDescription(offer)
 				if (offer.type === "offer") {
 					await this.rtc.setLocalDescription()
-					this.sendSignal({
+					await this.sendSignal({
 						action: "offer",
 						offer: this.rtc.localDescription
 					})
@@ -72,31 +75,44 @@ export class SocketMap {
 				}
 			},
 			onRecieve: (...args) => this.handleRecieve(...args),
+			onConnect: (...args) => this.handleConnect(...args),
 			setupDataChannel(channel) {
-				channel.addEventListener("open", () => {
+				channel.addEventListener("open", async () => {
 					this.channel = channel
+					await this.onConnect(this.user, this.id)
 				})
 
 				channel.addEventListener("message", async (event) => {
 					const message = JSON.parse(event.data)
-					await this.onRecieve(message)
-
+						await this.onRecieve(message)
 				})
 			},
 			async send(data) {
 				const msg = JSON.stringify(data)
+				await new Promise((resolve) => {
+					const checkValue = () => {
+						if (this.channel !== undefined) {
+							resolve(this.channel)
+						} else {
+							setTimeout(checkValue, 100)
+						}
+					}
+					checkValue()
+				});
 				this.channel.send(msg)
 			}
 		}
-		console.log(conn)
 		this.mapping.set(recv, conn)
+		if (!this.userIndex.has(user)) {
+			this.userIndex.set(user, [])
+		}
 		this.userIndex.get(user).push(conn)
 		this.handleChange()
 		conn.rtc.addEventListener("negotiationneeded", async function () {
 			try {
 				makingOffer = true
 				await this.setLocalDescription()
-				conn.sendSignal({
+				await conn.sendSignal({
 					action: "offer",
 					offer: this.localDescription
 				})
@@ -107,7 +123,7 @@ export class SocketMap {
 
 		conn.rtc.addEventListener("icecandidate", async function ({ candidate }) {
 			if (candidate !== null) {
-				conn.sendSignal({
+				await conn.sendSignal({
 					action: "icecandidate",
 					candidate,
 				})
@@ -129,14 +145,20 @@ export class SocketMap {
 
 		return conn
 	}
+	async send(data, id){
+		await this.mapping.get(id).send(data)
+	}
 	async sendAllClients(data, ...user) {
 		await Promise.all(this.getAllClients(...user).map((client) => client.send(data)))
 	}
 	getAllClients(...users) {
-		return users.flatMap(user => this.userIndex.get(user))
+		return users.flatMap(user => this.userIndex.get(user) ?? [])
 	}
 	handleChange() {
 		this.onChange?.(this.values)
+	}
+	async handleConnect(user,id) {
+		await this.onConnect?.(user,id)
 	}
 	async handleRecieve(message) {
 		await this.onRecieve?.(message)

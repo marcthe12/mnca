@@ -1,19 +1,38 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useUser } from "./UserProvider.jsx"
 import Hide from "./Hide.jsx"
 import api from "../api.js"
 
-function UserItem({ user, onDelete }) {
+function UserItem({ user, connection, onDelete }) {
 	const userContext = useUser()
-	return <li className="p-4 w-full grid grid-cols-[1fr,auto] rounded shadow">
+	const current_user = user === userContext.data.body.user
+
+	return <li className="p-4 w-full grid grid-cols-[1fr,auto,auto] rounded shadow">
 		<span className="grid-cols-1">{user}</span>
-		<Hide show={user !== userContext.data.body.user}><button className="grid-cols-2 hover:bg-delete-bg text-gray-800 font-bold py-0.2 px-2 rounded-full shadow" onClick={() => onDelete()}>-</button></Hide>
+		<span className="grid-cols-2 px-2">{current_user ? connection + 1 : connection} Client</span>
+		<Hide show={!current_user}>
+			<button
+				className="grid-cols-3 hover:bg-delete-bg text-gray-800 font-bold py-0.2 px-2 rounded-full shadow"
+				onClick={() => onDelete()}
+			>
+				-
+			</button>
+		</Hide>
 	</li>
 }
 function UserList({ users, onAdd, onRemove }) {
 	const [search, setSearch] = useState("")
 	const [errorMsg, setErrorMsg] = useState("")
+	const [status, setStatus] = useState([])
 	const user = useUser()
+
+	useEffect(() => {
+		setStatus(user.connect.socketMap.values)
+		user.connect.socketMap.onChange = values => setStatus(values)
+		return () => {
+			user.connect.socketMap.onChange = undefined
+		}
+	}, [])
 
 	async function addUser() {
 		const searchRequest = api("/search", user.token)
@@ -43,11 +62,19 @@ function UserList({ users, onAdd, onRemove }) {
 			<Hide show={errorMsg}><p>{errorMsg}</p></Hide>
 		</div>
 		<ul>
-			{[...users].map((user, index) => (<UserItem key={index} user={user} onDelete={() => removeUser(user)} />))}
+			{[...users]
+				.map((user, index) =>
+					(<UserItem 
+						key={index} 
+						user={user} 
+						connection={status.filter(row => row.user === user).length} 
+						onDelete={() => removeUser(user)} 
+						/>)
+				)
+			}
 		</ul>
 	</div>
 }
-
 
 export default function GroupInfo({ onClose, group }) {
 	const [name, setName] = useState(group.name)
@@ -125,7 +152,6 @@ export default function GroupInfo({ onClose, group }) {
 						Delete
 					</button>
 				</div>
-
 			</div>
 		</div>
 	)

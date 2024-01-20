@@ -1,6 +1,6 @@
-import { SocketMap } from "./SocketMap"
+import SocketMap from "./SocketMap.js"
 
-export class SocketInit {
+export default class SocketInit {
 	constructor(userAuth) {
 		this.getuserauth = userAuth
 		this.socketMap = new SocketMap(this)
@@ -11,40 +11,50 @@ export class SocketInit {
 			url.searchParams.set("token", userAuth.token)
 			url.searchParams.set("id", this.id)
 		}
-		this.result = new WebSocket(url)
-		this.result.addEventListener("open", async () => {
+		const result = new WebSocket(url)
+		result.addEventListener("open", async () => {
+			this.result = result
+			console.log(result)
 			const group = await this.getuserauth.groupMap.getValue()
-			group.flatMap(group => group.users).forEach(user => this.socketMap.addUser(user))
+			//group.flatMap(group => group.users).forEach(user => this.socketMap.addUser(user))
 			this.result.addEventListener("message", async ({ data }) => {
 				this.handleMessage(data)
 			})
-
-		})	
-
+		})
 	}
+
 	get id() {
 		return this.getuserauth.clientID
 	}
 	createPeer(recv, user, polite = true) {
-		return this.socketMap.create(recv, user, data => this.sendProxy(recv, data), polite)
+		return this.socketMap.create(recv, user, async data => await this.sendProxy(recv, data), polite)
 	}
-	send(type, data) {
-		return this.result.send(JSON.stringify({
+	async send(type, data) {
+		await new Promise((resolve) => {
+			const checkValue = () => {
+				if (this.result !== undefined) {
+					resolve(this.channel)
+				} else {
+					setTimeout(checkValue, 100)
+				}
+			}
+			checkValue()
+		})
+		this.result.send(JSON.stringify({
 			type,
 			...data
 		}))
-
 	}
-	sendProxy(dest, data) {
-		return this.send("proxy", {
+	async sendProxy(dest, data) {
+		await this.send("proxy", {
 			dest,
 			...data
 		})
 	}
-	sendNormal(data) {
-		return this.send("normal", data)
+	async sendNormal(data) {
+		await this.send("normal", data)
 	}
-	handleMessage(data) {
+	async handleMessage(data) {
 		const message = JSON.parse(data)
 
 		switch (message.type) {
@@ -52,7 +62,7 @@ export class SocketInit {
 				switch (message.action) {
 					case "subscribe": {
 						const conn = this.createPeer(message.client, message.user, false)
-						conn.sendSignal({ action: "ack", user: this.getuserauth.data.body.user })
+						await conn.sendSignal({ action: "ack", user: this.getuserauth.data.body.user })
 						break
 					}
 					case "unsubscribe": {
@@ -62,16 +72,16 @@ export class SocketInit {
 						break
 					}
 					case "join": {
-						this.send("", { ref: message.ackid })
+						await this.send("", { ref: message.ackid })
 						this.getuserauth.addGroup({
-							groupId: message.group.groupId, 
+							groupId: message.group.groupId,
 							users: new Set(message.group.users),
 							messages: [],
 							name: ""
 						})
 					}
 					case "leave": {
-						this.send("", { ref: message.ackid })
+						await this.send("", { ref: message.ackid })
 						this.getuserauth.deleteGroup(message.groupId)
 					}
 				}
@@ -79,11 +89,11 @@ export class SocketInit {
 			}
 			case "proxy": {
 				switch (message.action) {
-					case "ack": {
+					case "ack": {//recheck for bug
 						const conn = this.createPeer(message.src, message.user)
 						const channel = conn.rtc.createDataChannel(message.client)
 						conn.setupDataChannel(channel)
-						conn.sendSignal({ action: "setup" })
+						await conn.sendSignal({ action: "setup" })
 						break
 					}
 					case "setup": {
@@ -93,12 +103,12 @@ export class SocketInit {
 					}
 					case "offer": {
 						const conn = this.socketMap.get(message.src)
-						conn.onOffer(message.offer)
+						await conn.onOffer(message.offer)
 						break
 					}
 					case "icecandidate": {
 						const conn = this.socketMap.get(message.src)
-						conn.onIceCandidate(message.candidate)
+						await conn.onIceCandidate(message.candidate)
 						break
 					}
 				}

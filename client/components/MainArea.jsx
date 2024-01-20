@@ -10,7 +10,7 @@ export default function MainArea() {
 	const [groups, setGroups] = useState([])
 
 	async function GroupAddHandler(group) {
-		user.addGroup(group)
+		user.createGroup(group)
 	}
 
 	useEffect(

@@ -5,6 +5,7 @@ import { useUser } from "./UserProvider"
 export default function PeersConnectedModalContent({ onClose }) {
 	const user = useUser()
 	const [status,setStatus] = useState([])
+	
 	useEffect(() => {
 		setStatus(user.connect.socketMap.values)
 		user.connect.socketMap.onChange = values => setStatus(values)
@@ -12,6 +13,7 @@ export default function PeersConnectedModalContent({ onClose }) {
 			user.connect.socketMap.onChange = undefined
 		}
 	},[])
+
 	return <>
 		<h2 className="text-xl font-semibold mb-4 text-menu-text">Connected Peers</h2>
 		<div className="mb-4">

@@ -28,12 +28,13 @@ export default function UserMenu({ onGroupCreate }) {
 	function opengroupmodal() {
 		setShowCreateGroupModal(true)
 	}
-
+	async function refresh(){
+		 await user.groupMap.refresh()
+	}
 	async function handleCreateGroup(group) {
-		onGroupCreate({
+		await onGroupCreate({
 			...group,
-			users: new Set([user.data.body.user]),
-			messages: []
+			users: new Set([user.data.body.user])
 		})
 		closegroupmodal()
 	}
@@ -48,6 +49,13 @@ export default function UserMenu({ onGroupCreate }) {
 			</div>
 			<div className="relative inline-block text-left">
 				<Menu>
+					<button
+						onClick={() => refresh()}
+						className="block w-full px-4 py-2 text-menu-text bg-menu-bg hover:bg-menu-hover text-left"
+						role="menuitem"
+					>
+						Refresh
+					</button>
 					<button
 						onClick={() => openPeersConnectedModal()}
 						className="block w-full px-4 py-2 text-menu-text bg-menu-bg hover:bg-menu-hover text-left"
