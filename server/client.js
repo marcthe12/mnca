@@ -4,8 +4,42 @@ import fs from "node:fs/promises"
 
 const environment = process.env.NODE_ENV
 
-function assetExtensionRegex() {
+function generateHTML(manifest) {
+	let files = ""
+	if (environment === 'production') {
+		const manifest_val = Object.values(manifest)
+		files = manifest_val.map(({css, file}) => {
+			let out = ''
+			if (css) {
+				out += css.map(cssFile => `<link rel="stylesheet" href="${cssFile}">`).join('')
+			}
+			console.log(file)
+			if (file.endsWith('.js')) {
+				out += `<script type="module" src="${file}"></script>`
+			} else if (file.endsWith('.svg')) {
+				out += `<link rel="icon" type="image/svg+xml" href="${file}">`
+			}
+			return out
+		}).join('')
+	} else {
+		files = `<link rel="icon" type="image/svg+xml" href="/client/assets/icon.svg" />
+		<script type="module" src="http://localhost:5173/@vite/client"></script>
+		<script type="module">
+			import RefreshRuntime from "http://localhost:5173/@react-refresh";
+			RefreshRuntime.injectIntoGlobalHook(window);
+			window.$RefreshReg$ = () => {};
+			window.$RefreshSig$ = () => (type) => type;
+			window.__vite_plugin_react_preamble_installed__ = true;
+		</script>
+		<script type="module" src="http://localhost:5173/client/main.jsx"></script>
+		`
+	}
+	return `<!DOCTYPE html><html lang=en><head><meta charset=utf8>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>MNCA</title>${files}</head></html>`
+}
 
+
+function assetExtensionRegex() {
 	const supportedAssets = [
 		"svg",
 		"png",
@@ -16,9 +50,7 @@ function assetExtensionRegex() {
 		"ogv"
 	]
 	const formattedExtensionList = supportedAssets.join("|")
-
 	return new RegExp(`/.+\.(${formattedExtensionList})$`)
-
 }
 
 function asset() {
@@ -26,20 +58,13 @@ function asset() {
 	router.get(
 		assetExtensionRegex(),
 		(req, res) => {
-			res.redirect(
-				303,
-				`http://localhost:5173/client${req.path}`
-			)
-
+			res.redirect(303, `http://localhost:5173/client${req.path}`)
 		}
 	)
-
 	return router
-
 }
 
 async function parseManifest() {
-
 	if (environment !== "production") {
 		return {}
 	}
@@ -51,22 +76,14 @@ async function parseManifest() {
 		"manifest.json"
 	)
 	return await readJsonFile(manifestPath)
-
 }
 
 async function readJsonFile(Path) {
-
-	const file = await fs.readFile(
-		Path,
-		{ "encoding": "utf-8" }
-	)
-
+	const file = await fs.readFile(Path, { "encoding": "utf-8" })
 	return JSON.parse(file)
-
 }
 
 export default function() {
-
 	const router = Router()
 	if (process.env.NODE_ENV === "production") {
 		router.use(express.static(path.join(path.resolve(), "dist")))
@@ -81,11 +98,7 @@ export default function() {
 			"manifest": await parseManifest()
 		}
 
-		res.render(
-			"index.html.ejs",
-			data
-		)
-
+		res.send(generateHTML(data.manifest))
 	}
 	)
 
