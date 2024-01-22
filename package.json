@@ -42,6 +42,7 @@
   },
   "homepage": "https://github.com/marcthe12/mnca#readme",
   "dependencies": {
+    "@heroicons/react": "^2.1.1",
     "body-parser": "^1.20.2",
     "cross-env": "^7.0.3",
     "dotenv": "^16.3.1",
