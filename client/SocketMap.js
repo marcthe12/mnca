@@ -100,7 +100,7 @@ export default class SocketMap {
 						}
 					}
 					checkValue()
-				});
+				})
 				this.channel.send(msg)
 			}
 		}

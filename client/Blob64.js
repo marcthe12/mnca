@@ -10,7 +10,7 @@ export async function blobToBase64(blob) {
 
 export async function Base64ToBlob(url){
 	url.data = new URL(url.data)
-	if(url.data.protocol !== 'data:'){
+	if(url.data.protocol !== "data:"){
 		throw new Error("Not a data URL")
 	}
 	const res = await fetch(url.data)

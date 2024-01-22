@@ -1,10 +1,10 @@
-import { openDB } from "idb";
-import api from "./api.js";
-import { Base64ToBlob } from "./Blob64.js";
-import FileTable from "./FileTable.js";
-import GroupMap from "./GroupMap.js";
-import SocketInit from "./SocketInit";
-import { isDefined, JWTdecode } from "./utils.js";
+import { openDB } from "idb"
+import api from "./api.js"
+import { Base64ToBlob } from "./Blob64.js"
+import FileTable from "./FileTable.js"
+import GroupMap from "./GroupMap.js"
+import SocketInit from "./SocketInit"
+import { isDefined, JWTdecode } from "./utils.js"
 
 export class UserAuth {
 	constructor() {
@@ -102,7 +102,7 @@ export class UserAuth {
 			console.log(data)
 			return
 		}
-		return await this.groupMap.pull(data);
+		return await this.groupMap.pull(data)
 	}
 	async getGroups() {
 		const group = await this.groupMap?.getValue() ?? []

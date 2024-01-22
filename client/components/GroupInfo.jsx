@@ -69,7 +69,7 @@ function UserList({ users, onAdd, onRemove }) {
 						user={user} 
 						connection={status.filter(row => row.user === user).length} 
 						onDelete={() => removeUser(user)} 
-						/>)
+					/>)
 				)
 			}
 		</ul>

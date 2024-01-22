@@ -47,6 +47,7 @@ async function parseManifest() {
 	const manifestPath = path.join(
 		path.resolve(),
 		"dist",
+		".vite",
 		"manifest.json"
 	)
 	return await readJsonFile(manifestPath)

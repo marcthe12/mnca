@@ -1,4 +1,4 @@
-import fs from 'fs/promises';
+import fs from "fs/promises"
 
 const default_cfg = {
 	port: process.env.PORT ?? 3000,
@@ -9,9 +9,9 @@ const default_cfg = {
 async function readJSON(file) {
 	let data
 	try {
-		data = await fs.readFile(file, 'utf8')
+		data = await fs.readFile(file, "utf8")
 	} catch (err) {
-		console.error('Error reading the config file:', err.message);
+		console.error("Error reading the config file:", err.message)
 		return {}
 	}
 	return JSON.parse(data)
@@ -19,5 +19,5 @@ async function readJSON(file) {
 
 export default { 
 	...default_cfg, 
-	...await readJSON(process.env.CONFIG ?? './config.json') 
+	...await readJSON(process.env.CONFIG ?? "./config.json") 
 }

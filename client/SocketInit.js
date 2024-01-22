@@ -55,62 +55,64 @@ export default class SocketInit {
 		const message = JSON.parse(data)
 
 		switch (message.type) {
-			case "normal": {
-				switch (message.action) {
-					case "subscribe": {
-						const conn = this.createPeer(message.client, message.user, false)
-						await conn.sendSignal({ action: "ack", user: this.getuserauth.data.body.user })
-						break
-					}
-					case "unsubscribe": {
-						if (this.socketMap.has(message.client)) {
-							this.socketMap.delete(message.client)
-						}
-						break
-					}
-					case "join": {
-						await this.send("", { ref: message.ackid })
-						this.getuserauth.addGroup({
-							groupId: message.group.groupId,
-							users: new Set(message.group.users),
-							messages: [],
-							name: ""
-						})
-					}
-					case "leave": {
-						await this.send("", { ref: message.ackid })
-						this.getuserauth.deleteGroup(message.groupId)
-					}
+		case "normal": {
+			switch (message.action) {
+			case "subscribe": {
+				const conn = this.createPeer(message.client, message.user, false)
+				await conn.sendSignal({ action: "ack", user: this.getuserauth.data.body.user })
+				break
+			}
+			case "unsubscribe": {
+				if (this.socketMap.has(message.client)) {
+					this.socketMap.delete(message.client)
 				}
 				break
 			}
-			case "proxy": {
-				switch (message.action) {
-					case "ack": {//recheck for bug
-						const conn = this.createPeer(message.src, message.user)
-						const channel = conn.rtc.createDataChannel(message.client)
-						conn.setupDataChannel(channel)
-						await conn.sendSignal({ action: "setup" })
-						break
-					}
-					case "setup": {
-						const conn = this.socketMap.get(message.src)
-						//conn.rtc.createDataChannel(message.client);
-						break
-					}
-					case "offer": {
-						const conn = this.socketMap.get(message.src)
-						await conn.onOffer(message.offer)
-						break
-					}
-					case "icecandidate": {
-						const conn = this.socketMap.get(message.src)
-						await conn.onIceCandidate(message.candidate)
-						break
-					}
-				}
+			case "join": {
+				await this.send("", { ref: message.ackid })
+				this.getuserauth.addGroup({
+					groupId: message.group.groupId,
+					users: new Set(message.group.users),
+					messages: [],
+					name: ""
+				})
 				break
 			}
+			case "leave": {
+				await this.send("", { ref: message.ackid })
+				this.getuserauth.deleteGroup(message.groupId)
+				break
+			}
+			}
+			break
+		}
+		case "proxy": {
+			switch (message.action) {
+			case "ack": {//recheck for bug
+				const conn = this.createPeer(message.src, message.user)
+				const channel = conn.rtc.createDataChannel(message.client)
+				conn.setupDataChannel(channel)
+				await conn.sendSignal({ action: "setup" })
+				break
+			}
+			case "setup": {
+				const conn = this.socketMap.get(message.src)
+				//conn.rtc.createDataChannel(message.client);
+				break
+			}
+			case "offer": {
+				const conn = this.socketMap.get(message.src)
+				await conn.onOffer(message.offer)
+				break
+			}
+			case "icecandidate": {
+				const conn = this.socketMap.get(message.src)
+				await conn.onIceCandidate(message.candidate)
+				break
+			}
+			}
+			break
+		}
 		}
 	}
 
