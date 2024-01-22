@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import MessageBox from "./MessageBox.jsx"
 import SendBox from "./SendBox.jsx"
 import Hide from "./Hide.jsx"
@@ -7,7 +7,6 @@ import GroupInfo from "./GroupInfo.jsx"
 import Modal from "./Modal.jsx"
 
 export default function MainChatArea({ group, isactive }) {
-	//const [messages, setMessages] = useState([])
 	const [isModalOpen, setModalState] = useState(false)
 	const user = useUser()
 	const [msgStack, setMsgStack] = useState([])

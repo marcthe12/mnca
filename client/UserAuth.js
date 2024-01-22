@@ -31,7 +31,7 @@ export class UserAuth {
 			this.filetable = new FileTable(this)
 			await this.groupMap.open()
 			this.connect.socketMap.onConnect = (user, id) => this.groupMap.onOnline(user, id)
-			this.connect.socketMap.onRecieve = data => this.handleRecieve(data) 
+			this.connect.socketMap.onRecieve = data => this.handleRecieve(data)
 			localStorage.setItem("token", value)
 			await this.getGroups()
 			this.onSignin?.(value)
@@ -39,7 +39,7 @@ export class UserAuth {
 		else {
 			this.clientID = null
 			this.groupMap = null
-			this.filetable= null
+			this.filetable = null
 			this.connect?.close()
 			this.db?.close()
 			this.onSignOut?.()
@@ -48,57 +48,50 @@ export class UserAuth {
 	}
 
 	get data() {
-		return this.token
-			? JWTdecode(this.token)
-			: null
-
+		return this.token ? JWTdecode(this.token) : null
 	}
 	async dbconnect() {
-		this.db = this.token
-			? await openDB(
-				this.data.body.user,
-				5,
-				{
-					upgrade(db) {
-						db.createObjectStore(
-							"id"
-						)
-						db.createObjectStore(
-							"groupMapState",
-						)
-						db.createObjectStore( //events
-							"groupMapLog",
-							{ "keyPath": "OpId" }
-						)
-						db.createObjectStore( //vector clock
-							"groupMapVersion",
-						)
-						db.createObjectStore(
-							"groupState",
-							{ "keyPath": "groupId" }
-						)
-						const groupLogs = db.createObjectStore(
-							"groupLog",
-							{ "keyPath": "OpId" }
-						)
-						groupLogs.createIndex(
-							"groupIndex",
-							"groupId",
-							{ "unique": false }
-						)
-						db.createObjectStore(
-							"groupVersion"
-						)
-						db.createObjectStore(
-							"files"
-						)
-					}
+		this.db = this.token ? await openDB(this.data.body.user, 5,
+			{
+				upgrade(db) {
+					db.createObjectStore(
+						"id"
+					)
+					db.createObjectStore(
+						"groupMapState",
+					)
+					db.createObjectStore( //events
+						"groupMapLog",
+						{ "keyPath": "OpId" }
+					)
+					db.createObjectStore( //vector clock
+						"groupMapVersion",
+					)
+					db.createObjectStore(
+						"groupState",
+						{ "keyPath": "groupId" }
+					)
+					const groupLogs = db.createObjectStore(
+						"groupLog",
+						{ "keyPath": "OpId" }
+					)
+					groupLogs.createIndex(
+						"groupIndex",
+						"groupId",
+						{ "unique": false }
+					)
+					db.createObjectStore(
+						"groupVersion"
+					)
+					db.createObjectStore(
+						"files"
+					)
 				}
-			)
-			: null
+			}
+		) : null
 	}
 	async handleRecieve(data) {
-		if(isDefined(data.file)){
+		if (isDefined(data.file)) {
 			console.log(data)
 			return
 		}
@@ -185,6 +178,11 @@ export class UserAuth {
 
 	async signIn(username, password) {
 		const loginRequest = api("/login")
+		const persist = await navigator.storage.persist()
+		if(!persist){
+			alert("Need Persist Storage Permission to Continue.")
+			return
+		}
 		const data = await loginRequest({
 			username,
 			password

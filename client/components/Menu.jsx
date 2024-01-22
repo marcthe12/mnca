@@ -1,6 +1,6 @@
 import { useState } from "react"
 import Hide from "./Hide"
-import Bars3Icon from '@heroicons/react/24/solid/Bars3Icon'
+import Bars3Icon from "@heroicons/react/24/solid/Bars3Icon"
 
 export default function Menu({ children }) {
 

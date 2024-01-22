@@ -1,26 +1,27 @@
 import express, { Router } from "express"
 import path from "node:path"
 import fs from "node:fs/promises"
+import wrap from "./wrap.js"
 
 const environment = process.env.NODE_ENV
 
 function generateHTML(manifest) {
 	let files = ""
-	if (environment === 'production') {
+	if (environment === "production") {
 		const manifest_val = Object.values(manifest)
-		files = manifest_val.map(({css, file}) => {
-			let out = ''
+		files = manifest_val.map(({ css, file }) => {
+			let out = ""
 			if (css) {
-				out += css.map(cssFile => `<link rel="stylesheet" href="${cssFile}">`).join('')
+				out += css.map(cssFile => `<link rel="stylesheet" href="${cssFile}">`).join("")
 			}
 			console.log(file)
-			if (file.endsWith('.js')) {
+			if (file.endsWith(".js")) {
 				out += `<script type="module" src="${file}"></script>`
-			} else if (file.endsWith('.svg')) {
+			} else if (file.endsWith(".svg")) {
 				out += `<link rel="icon" type="image/svg+xml" href="${file}">`
 			}
 			return out
-		}).join('')
+		}).join("")
 	} else {
 		files = `<link rel="icon" type="image/svg+xml" href="/client/assets/icon.svg" />
 		<script type="module" src="http://localhost:5173/@vite/client"></script>
@@ -83,6 +84,11 @@ async function readJsonFile(Path) {
 	return JSON.parse(file)
 }
 
+async function root(_req, res) {
+	const manifest = await parseManifest()
+	res.send(generateHTML(manifest))
+}
+
 export default function() {
 	const router = Router()
 	if (process.env.NODE_ENV === "production") {
@@ -92,16 +98,6 @@ export default function() {
 		router.use("/client", asset())
 	}
 
-	router.get("/", async (_req, res) => {
-		const data = {
-			environment,
-			"manifest": await parseManifest()
-		}
-
-		res.send(generateHTML(data.manifest))
-	}
-	)
-
+	router.get("/", wrap(root))
 	return router
-
 }

@@ -4,26 +4,24 @@ import createApp from "./createApp.js"
 import websocket from "./connect.js"
 import config from "./config.js"
 
-export default async function () {
+export default async function() {
 	await mongoose.connect(config.mongo_url)
 	const app = createApp()
 	const server = http.createServer(app)
 	websocket(server)
 
-	server.listen(
-		config.port,
-		() => {
-			console.log("HTTP Server is Starting")
-		}
-	)
+	server.listen(config.port, () => {
+		console.log("HTTP Server is Starting")
+	})
 
-	server.on(
-		"close",
-		() => {
-			console.log("HTTP Server is Stopping")
-		}
-	)
+	server.on("close", () => {
+		console.log("HTTP Server is Stopping")
+	})
 
+	process.on("SIGTERM", () => {
+		console.warn("SIGTERM signal received: closing HTTP server")
+		server.close()
+	})
 }
 
 

@@ -12,8 +12,6 @@ export default class SocketInit {
 		const result = new WebSocket(url)
 		result.addEventListener("open", async () => {
 			this.result = result
-			const group = await this.getuserauth.groupMap.getValue()
-			//group.flatMap(group => group.users).forEach(user => this.socketMap.addUser(user))
 			this.result.addEventListener("message", async ({ data }) => {
 				this.handleMessage(data)
 			})

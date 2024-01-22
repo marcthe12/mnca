@@ -5,7 +5,6 @@ import api from "./api.js"
 import client from "./client.js"
 
 export default function () {
-
 	const app = express()
 
 	app.use(morgan("tiny"))
@@ -15,5 +14,4 @@ export default function () {
 
 	app.use(client())
 	return app
-
 }

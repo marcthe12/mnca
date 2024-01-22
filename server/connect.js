@@ -61,12 +61,12 @@ function broadcastToUser(user, id, action, data = {}) {
 }
 
 function sendAck(ws, data, timeout, ackid = crypto.randomUUID(),) {
-	return new Promise((resolve, reject) => {
+	return new Promise((resolve, _reject) => {
 		const timer = setTimeout(() => {
 			unsubscribe()
 			resolve(false)
 		}, timeout)
-		var1[ackid] = (msg, unsubscribe) => {
+		var1[ackid] = (_msg, unsubscribe) => {
 			clearTimeout(timer)
 			unsubscribe()
 			resolve(true)
@@ -92,13 +92,13 @@ const var1 = {}
 
 export default function (server) {
 	const wss = new WebSocketServer({ server })
-	wss.on("connection", function (ws, req) {
+	wss.on("connection", async function (ws, req) {
 		const searchParams = new URL(req.url, `ws://${req.headers.host}`).searchParams
 		const token = searchParams.get("token")
 		const id = searchParams.get("id")
 		var user
 		try {
-			user = Token.verify(token).user //token verification
+			user = await Token.verify(token).user //token verification
 		} catch (err) {
 			ws.close(1008, "Forbidden")
 			return

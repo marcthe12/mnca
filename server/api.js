@@ -2,49 +2,55 @@ import { Router } from "express"
 import { User } from "./User.js"
 import Token from "./Token.js"
 import config from "./config.js"
+import wrap from "./wrap.js"
 
 async function register(req, res) {
-
 	const { username, password } = req.body
 	const newUser = new User({ username })
 	newUser.setPassword(password)
 	await newUser.save()
-	res.send({ "msg": "User registered successfully." })
-
+	res.status(200).json({ message: "User registered successfully." })
 }
 
-async function client_config(req, res) {
+async function client_config(_req, res) {
 	return res.status(200).json({
 		websocket: config.websocket,
 		iceProxies: config.iceProxies
 	})
 }
-async function login(req, res) {
 
+async function login(req, res) {
 	const { username, password } = req.body
 	const user = await User.findOne({ username })
 	if (user) {
-
 		if (user.validPassword(password)) {
-
-			const token = Token.sign({ "user": username })
+			const token = await Token.sign({ "user": username })
 			return res.status(200).json({
-				"message": "Login Sucessful",
+				message: "Login Sucessful",
 				token,
 				username
 			})
-
 		}
-
 		return res.status(401).send({
-			"message": "Wrong Password"
+			message: "Wrong Password"
 		})
-
 	}
-	res.status(401).send({ "message": "Invalid username" })
-
+	res.status(401).send({ message: "Invalid username" })
 }
+
 async function searchUser(req, res) {
+	const authHeader = req.headers["authorization"]
+	const token = authHeader && authHeader.split(" ")[1]
+	if (token == null) {
+		return res.status(401).send({ message: "Authorization Required" })
+	}
+
+	try {
+		await Token.verify(token)
+	} catch (err) {
+		return res.status(403).send({message: "Invalid User"})
+	}
+
 	const { username } = req.body
 	const user = await User.findOne({ username })
 	if (user) {
@@ -57,24 +63,23 @@ async function searchUser(req, res) {
 	})
 }
 
-export default function () {
-
+export default function() {
 	const route = Router()
 	route.post(
 		"/register",
-		register
+		wrap(register)
 	)
 	route.post(
 		"/login",
-		login
+		wrap(login)
 	)
 	route.post(
 		"/search",
-		searchUser
+		wrap(searchUser)
 	)
 	route.post(
 		"/config",
-		client_config
+		wrap(client_config)
 	)
 	return route
 
