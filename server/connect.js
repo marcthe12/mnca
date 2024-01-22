@@ -90,9 +90,9 @@ async function sendToUserOneByOne(user, id, action, data = {}) {
 
 const var1 = {}
 
-export default function (server) {
+export default function(server) {
 	const wss = new WebSocketServer({ server })
-	wss.on("connection", async function (ws, req) {
+	wss.on("connection", async function(ws, req) {
 		const searchParams = new URL(req.url, `ws://${req.headers.host}`).searchParams
 		const token = searchParams.get("token")
 		const id = searchParams.get("id")
@@ -108,18 +108,31 @@ export default function (server) {
 		userSessions.add(socket)
 
 		const subList = new SubscribeSocket(
-			userSessions, 
-			recv => broadcastToUser(recv, socket.id, "subscribe", {user}), 
-			recv => broadcastToUser(recv, socket.id, "unsubscribe", {user})
+			userSessions,
+			recv => broadcastToUser(recv, socket.id, "subscribe", { user }),
+			recv => broadcastToUser(recv, socket.id, "unsubscribe", { user })
 		)
 		subList.add(user)
 
-		ws.on("close", function (code, reason) {
+		const pingInterval = setInterval(() => {
+			ws.ping();
+		}, 30000);
+
+		ws.on('pong', () => {
+			clearInterval(pingInterval);
+			setTimeout(() => {
+				pingInterval = setInterval(() => {
+					ws.ping();
+				}, 30000);
+			}, 30000);
+		});
+
+		ws.on("close", function(code, reason) {
 			subList.clear()
 			userSessions.remove(socket)
 			console.error(code, reason)
 		})
-		ws.on("message", async function (message) {
+		ws.on("message", async function(message) {
 			const msg = JSON.parse(message)
 			if (msg.ref && var1[msg.ref]) {
 				await var1[msg.ref](msg, () => delete var1[msg.ref])
@@ -127,33 +140,33 @@ export default function (server) {
 			}
 
 			switch (msg.type) {
-			case "normal": {
-				const user = msg.user
-				switch (msg.action) {
-				case "subscribe": {
-					subList.add(user)
+				case "normal": {
+					const user = msg.user
+					switch (msg.action) {
+						case "subscribe": {
+							subList.add(user)
+							break
+						}
+						case "unsubscribe": {
+							subList.delete(user)
+							break
+						}
+						case "join": {
+							sendToUserOneByOne(user, socket.id, "join", { group: msg.group })
+							break
+						}
+						case "leave": {
+							sendToUserOneByOne(user, socket.id, "leave", { groupId: msg.groupId })
+							break
+						}
+					}
 					break
 				}
-				case "unsubscribe": {
-					subList.delete(user)
+				case "proxy": {
+					const target = userSessions.getSocketFromId(msg.dest)
+					target?.ws.send(JSON.stringify({ src: socket.id, ...msg }))
 					break
 				}
-				case "join": {
-					sendToUserOneByOne(user, socket.id, "join", { group: msg.group })
-					break
-				}
-				case "leave": {
-					sendToUserOneByOne(user, socket.id, "leave", { groupId: msg.groupId })
-					break
-				}
-				}
-				break
-			}
-			case "proxy": {
-				const target = userSessions.getSocketFromId(msg.dest)
-				target?.ws.send(JSON.stringify({ src: socket.id, ...msg }))
-				break
-			}
 			}
 		})
 	})
