@@ -16,6 +16,7 @@ export default async function() {
 
 	server.on("close", () => {
 		console.log("HTTP Server is Stopping")
+		process.exit(0)
 	})
 
 	process.on("SIGTERM", () => {
