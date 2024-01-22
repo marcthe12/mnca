@@ -96,17 +96,20 @@ export default function(server) {
 		const searchParams = new URL(req.url, `ws://${req.headers.host}`).searchParams
 		const token = searchParams.get("token")
 		const id = searchParams.get("id")
-		var user
+		var tken 
 		try {
-			user = await Token.verify(token).user //token verification
+			tken = await Token.verify(token) //token verification
 		} catch (err) {
 			ws.close(1008, "Forbidden")
 			return
 		}
 
+		const { user } = tken
+
 		const socket = { user, ws, id }
 		userSessions.add(socket)
 
+		console.log(user)
 		const subList = new SubscribeSocket(
 			userSessions,
 			recv => broadcastToUser(recv, socket.id, "subscribe", { user }),
