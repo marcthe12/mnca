@@ -2,7 +2,7 @@
 
 import colors from "tailwindcss/colors"
 
-export {
+export default {
 	content: ["./client/**/*.{js,ts,jsx,tsx}"],
 	theme: {
 		colors: {
