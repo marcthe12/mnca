@@ -114,18 +114,18 @@ export default function(server) {
 		)
 		subList.add(user)
 
-		const pingInterval = setInterval(() => {
-			ws.ping();
-		}, 30000);
+		let pingInterval = setInterval(() => {
+			ws.ping()
+		}, 30000)
 
-		ws.on('pong', () => {
-			clearInterval(pingInterval);
+		ws.on("pong", () => {
+			clearInterval(pingInterval)
 			setTimeout(() => {
 				pingInterval = setInterval(() => {
-					ws.ping();
-				}, 30000);
-			}, 30000);
-		});
+					ws.ping()
+				}, 30000)
+			}, 30000)
+		})
 
 		ws.on("close", function(code, reason) {
 			subList.clear()
@@ -140,33 +140,33 @@ export default function(server) {
 			}
 
 			switch (msg.type) {
-				case "normal": {
-					const user = msg.user
-					switch (msg.action) {
-						case "subscribe": {
-							subList.add(user)
-							break
-						}
-						case "unsubscribe": {
-							subList.delete(user)
-							break
-						}
-						case "join": {
-							sendToUserOneByOne(user, socket.id, "join", { group: msg.group })
-							break
-						}
-						case "leave": {
-							sendToUserOneByOne(user, socket.id, "leave", { groupId: msg.groupId })
-							break
-						}
-					}
+			case "normal": {
+				const user = msg.user
+				switch (msg.action) {
+				case "subscribe": {
+					subList.add(user)
 					break
 				}
-				case "proxy": {
-					const target = userSessions.getSocketFromId(msg.dest)
-					target?.ws.send(JSON.stringify({ src: socket.id, ...msg }))
+				case "unsubscribe": {
+					subList.delete(user)
 					break
 				}
+				case "join": {
+					sendToUserOneByOne(user, socket.id, "join", { group: msg.group })
+					break
+				}
+				case "leave": {
+					sendToUserOneByOne(user, socket.id, "leave", { groupId: msg.groupId })
+					break
+				}
+				}
+				break
+			}
+			case "proxy": {
+				const target = userSessions.getSocketFromId(msg.dest)
+				target?.ws.send(JSON.stringify({ src: socket.id, ...msg }))
+				break
+			}
 			}
 		})
 	})
