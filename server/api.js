@@ -1,6 +1,7 @@
 import { Router } from "express"
 import { User } from "./User.js"
 import Token from "./Token.js"
+import config from "./config.js"
 
 async function register(req, res) {
 
@@ -11,20 +12,11 @@ async function register(req, res) {
 	res.send({ "msg": "User registered successfully." })
 
 }
-//serverconfig
-async function config(req, res) {
+
+async function client_config(req, res) {
 	return res.status(200).json({
-		websocket: "ws://localhost:3000/",
-		iceProxies: [
-			{
-				"urls": ["stun:172.18.141.254:3478"],
-			},
-			{
-				"urls": ["turn:172.18.141.254:3478"],
-				username: "chris",
-				credential: "1234"
-			}
-		]
+		websocket: config.websocket,
+		iceProxies: config.iceProxies
 	})
 }
 async function login(req, res) {
@@ -82,7 +74,7 @@ export default function () {
 	)
 	route.post(
 		"/config",
-		config
+		client_config
 	)
 	return route
 

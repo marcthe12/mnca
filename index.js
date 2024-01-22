@@ -3,6 +3,8 @@ import {fileURLToPath} from "node:url"
 import {dirname} from "node:path"
 import {chdir} from "node:process"
 
+
+
 await init()
 await (await import("./server/index.js")).default()
 
