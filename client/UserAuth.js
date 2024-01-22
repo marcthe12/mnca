@@ -1,9 +1,10 @@
-import api from "./api.js"
-import SocketInit from "./SocketInit"
-import { openDB } from "idb"
-import { blobToBase64, Base64ToBlob } from "./Blob64.js"
+import { openDB } from "idb";
+import api from "./api.js";
+import { Base64ToBlob } from "./Blob64.js";
+import FileTable from "./FileTable.js";
 import GroupMap from "./GroupMap.js";
-import { JWTdecode } from "./utils.js";
+import SocketInit from "./SocketInit";
+import { isDefined, JWTdecode } from "./utils.js";
 
 export class UserAuth {
 	constructor() {
@@ -27,9 +28,10 @@ export class UserAuth {
 			this.clientID = client[0]
 			this.groupMap = new GroupMap(this)
 			this.connect = new SocketInit(this)
+			this.filetable = new FileTable(this)
 			await this.groupMap.open()
 			this.connect.socketMap.onConnect = (user, id) => this.groupMap.onOnline(user, id)
-			this.connect.socketMap.onRecieve = data => this.groupMap.pull(data)
+			this.connect.socketMap.onRecieve = data => this.handleRecieve(data) 
 			localStorage.setItem("token", value)
 			await this.getGroups()
 			this.onSignin?.(value)
@@ -37,6 +39,7 @@ export class UserAuth {
 		else {
 			this.clientID = null
 			this.groupMap = null
+			this.filetable= null
 			this.connect?.close()
 			this.db?.close()
 			this.onSignOut?.()
@@ -87,13 +90,19 @@ export class UserAuth {
 							"groupVersion"
 						)
 						db.createObjectStore(
-							"files",
-							{ "keyPath": "hash" }
+							"files"
 						)
 					}
 				}
 			)
 			: null
+	}
+	async handleRecieve(data) {
+		if(isDefined(data.file)){
+			console.log(data)
+			return
+		}
+		return await this.groupMap.pull(data);
 	}
 	async getGroups() {
 		const group = await this.groupMap?.getValue() ?? []
@@ -130,9 +139,10 @@ export class UserAuth {
 	}
 
 	async sendNewMessage(group, message, parentId) {
-		if (message instanceof File) {
-			message = await blobToBase64(message)
-		}
+		await this.filetable.add(message)
+		// if (message instanceof File) {
+		// 	message = await blobToBase64(message)
+		// }
 		const data = {
 			"name": this.data.body.user,
 			message,
@@ -151,10 +161,23 @@ export class UserAuth {
 		await this.groupMap.addMessage(message.groupId, message)
 	}
 
-	async addNewMessage(groupId, message, parent) {
-		const msg = await this.sendNewMessage(groupId, message, parent)
-		await this.recieveNewMessage(msg)
-
+	async addNewMessage(group, message, parentId) {
+		const digest = await this.filetable.add(message)
+		// if (message instanceof File) {
+		// 	message = await blobToBase64(message)
+		// }
+		const msg = {
+			name: this.data.body.user,
+			message: digest,
+			date: new Date(),
+			groupId: group.groupId,
+			parentId,
+			messageId: crypto.randomUUID()
+		}
+		// if (typeof msg.message === "object") {
+		// 	msg.message = await Base64ToBlob(msg.message)
+		// }
+		await this.groupMap.addMessage(msg.groupId, msg)
 	}
 	async removeMessage(message) {
 		await this.groupMap.removeMessage(message.groupId, message.messageId)

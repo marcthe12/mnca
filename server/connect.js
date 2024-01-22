@@ -119,10 +119,10 @@ export default function (server) {
 			userSessions.remove(socket)
 			console.error(code, reason)
 		})
-		ws.on("message", function (message) {
+		ws.on("message", async function (message) {
 			const msg = JSON.parse(message)
-			if (msg.ref) {
-				var1[msg.ref](msg, () => delete msg.ref)
+			if (msg.ref && var1[msg.ref]) {
+				await var1[msg.ref](msg, () => delete var1[msg.ref])
 				return
 			}
 

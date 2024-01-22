@@ -1,3 +1,5 @@
+import config from "./config.js"
+
 export default class SocketMap {
 	constructor(conn) {
 		this.mapping = new Map()
@@ -31,18 +33,11 @@ export default class SocketMap {
 		let ignoreOffer = false
 
 		const conn = {
+			callbackMap: new Map(),
 			id: recv,
 			user,
 			rtc: new RTCPeerConnection({
-				iceServers: [{
-					"urls": ["stun:172.18.141.254:3478"],
-				},
-				{
-					"urls": ["turn:172.18.141.254:3478"],
-					username: "chris",
-					credential: "1234"
-				}
-				]
+				iceServers: config.iceProxies
 			}),
 			sendSignal,
 			close() {
@@ -84,7 +79,14 @@ export default class SocketMap {
 
 				channel.addEventListener("message", async (event) => {
 					const message = JSON.parse(event.data)
-						await this.onRecieve(message)
+					if (message.ref && this.callbackMap.has(message.ref)) {
+						this.callbackMap.get(message.ref)(
+							message,
+							() => this.callbackMap.delete(message.ref)
+						)
+						return
+					}
+					await this.onRecieve(message)
 				})
 			},
 			async send(data) {
@@ -145,8 +147,14 @@ export default class SocketMap {
 
 		return conn
 	}
-	async send(data, id){
+	registerCall(id, callback, ref = crypto.randomUUID()) {
+		this.mapping.get(id).callbackMap.set(ref, callback)
+	}
+	async send(data, id) {
 		await this.mapping.get(id).send(data)
+	}
+	registerCallAll(callback, ref, ...users) {
+		this.getAllClients(...users).forEach(client => client.callbackMap.set(ref, callback))
 	}
 	async sendAllClients(data, ...user) {
 		await Promise.all(this.getAllClients(...user).map((client) => client.send(data)))
@@ -157,8 +165,8 @@ export default class SocketMap {
 	handleChange() {
 		this.onChange?.(this.values)
 	}
-	async handleConnect(user,id) {
-		await this.onConnect?.(user,id)
+	async handleConnect(user, id) {
+		await this.onConnect?.(user, id)
 	}
 	async handleRecieve(message) {
 		await this.onRecieve?.(message)

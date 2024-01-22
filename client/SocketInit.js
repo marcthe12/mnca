@@ -1,12 +1,10 @@
 import SocketMap from "./SocketMap.js"
-
+import config from "./config.js"
 export default class SocketInit {
 	constructor(userAuth) {
 		this.getuserauth = userAuth
 		this.socketMap = new SocketMap(this)
-		const url = new URL(window.location.href)
-		url.pathname = "/"
-		url.protocol = "ws"
+		const url = new URL(config.websocket)
 		if (userAuth.token) {
 			url.searchParams.set("token", userAuth.token)
 			url.searchParams.set("id", this.id)
@@ -14,7 +12,6 @@ export default class SocketInit {
 		const result = new WebSocket(url)
 		result.addEventListener("open", async () => {
 			this.result = result
-			console.log(result)
 			const group = await this.getuserauth.groupMap.getValue()
 			//group.flatMap(group => group.users).forEach(user => this.socketMap.addUser(user))
 			this.result.addEventListener("message", async ({ data }) => {

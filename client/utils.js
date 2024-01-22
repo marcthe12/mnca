@@ -21,3 +21,12 @@ export function waitUntilMapValue(map, key) {
 		checkValue();
 	});
 }
+
+export function isDefined(value) {
+	return !(new Set([null, undefined]).has(value))
+}
+
+export function log(value) {
+	console.log(value)
+	return value
+}

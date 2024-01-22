@@ -1,4 +1,18 @@
 import VectorClock from "./VectorClock.js";
+import { log } from "./utils.js"
+
+function notifyUserChange(action, user) {
+	if ('Notification' in window) {
+		Notification.requestPermission().then(permission => {
+			if (permission === 'granted') {
+				console.log("notification");
+				const notification = new Notification(`User ${user} has ${action}.`);
+			}
+		});
+	} else {
+		console.log('Browser does not support notifications.');
+	}
+}
 
 export default class Group {
 	constructor(userAuth, groupId) {
@@ -50,7 +64,12 @@ export default class Group {
 	}
 
 	async getState() {
-		return await this.db.get("groupState", this.groupId);
+		return await this.db.get("groupState", this.groupId) ?? {
+			groupId: this.groupId,
+			users: new Map(),
+			name: { value: "", timestamp: { time: 0 } },
+			messages: new Map()
+		}
 	}
 	async getValue() {
 		const value = await this.getState()
@@ -102,13 +121,13 @@ export default class Group {
 		}
 	}
 	async store(...events) {
+		const old = await this.getValue()
 		const transx = this.db.transaction("groupLog", "readwrite");
 		for (const event of events) {
 			await transx.store.add({ ...event, version: event.version.state });
 		}
 		await transx.done;
 		events = await this.db.getAllFromIndex("groupLog", "groupIndex", this.groupId) ?? [];
-		console.log(events);
 		events.sort((a, b) => {
 			const ver_a = new VectorClock(a.version);
 			const ver_b = new VectorClock(b.version);
@@ -149,10 +168,36 @@ export default class Group {
 			}
 		}
 		await this.db.put("groupState", group)
+		const newvar = await this.getValue()
+		const newMessages = [...newvar.messages].filter(newMessage => ![...old.messages].some(oldMessage => newMessage.messageId === oldMessage.messageId))
+		const removedMessages = [...old.messages].filter(oldMessage => ![...newvar.messages].some(newMessage => newMessage.messageId === oldMessage.messageId))
+		const newMessageHashes = newMessages.map(message => message.message)
+		const removedMessageHashes = removedMessages.map(message => message.message)
+		const newUsers = [...newvar.users].filter(user => !old.users.has(user))
+		const removedUsers = [...old.users].filter(user => !newvar.users.has(user))
+		for (const hash of removedMessageHashes) {
+			await this.userAuth.filetable.delete(hash)
+		}
+		for (const hash of newMessageHashes) {
+			if (!await this.userAuth.filetable.inc(hash)) {
+				await this.userAuth.connect.socketMap.sendAllClients({
+					id: this.replicaId,
+					file: true,
+					hash,
+					action: "request"
+				}, ...newvar.users)
+			}
+		}
+
+		newUsers.forEach(user => notifyUserChange('entered', user))
+		removedUsers.forEach(user => notifyUserChange('left', user))
+		console.log('Added messages:', newMessages);
+		console.log('Removed messages:', removedMessages);
+		console.log('Added users:', newUsers);
+		console.log('Removed users:', removedUsers);
 		await this.userAuth.getGroups()
 	}
 	async onOnline(user, id) {
-		console.log(user)
 		if (user == this.userAuth.data.body.user) {
 			await this.userAuth.connect.socketMap.send({
 				groupId: this.groupId,

@@ -131,7 +131,6 @@ export default class GroupMap {
 			}
 			return acc;
 		}, new Map());
-		console.log(this.map)
 		await Promise.all([...this.map].filter(([k, v]) => !gState.has(k)).map(([k, v]) => v.delete()));
 		await Promise.all([...gState].filter(([k, v]) => !this.map.has(k)).map(async ([k, v]) => {
 			const group = new Group(this.userAuth, k);
@@ -156,7 +155,6 @@ export default class GroupMap {
 		return group.filter(v => v !== undefined);
 	}
 	async onOnline(user, id) {
-		console.log(user);
 		if (user == this.userAuth.data.body.user) {
 			await this.userAuth.connect.socketMap.send({
 				id: this.replicaId,
@@ -165,7 +163,6 @@ export default class GroupMap {
 		}
 		const value = await this.getValue();
 		const groups = value.filter(({ users }) => users.has(user)).map(group => this.map.get(group.groupId));
-		console.log(groups);
 		await Promise.all(groups.map(group => group.onOnline(user, id)));
 	}
 	async createGroup(group) {

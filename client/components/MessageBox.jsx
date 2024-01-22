@@ -1,21 +1,32 @@
 import Hide from "./Hide.jsx"
-import { useState } from "react"
-
-export default function MessageBox({ message,onThread, onDelete }) {
+import { useState, useEffect } from "react"
+import { useUser } from "./UserProvider.jsx"
+import { isDefined } from "../utils.js"
+export default function MessageBox({ message, onThread, onDelete }) {
+	const user = useUser()
 	const { messageId: id, name, "message": msg, date } = message
-
 	const [menu, setMenu] = useState(false)
+	const [data, setData] = useState(null)
+	useEffect(
+		() => {
+			// user.onGroupChange = (grouplist) => setGroups(grouplist)
+			// user.getGroups()
+			// return () => user.onGroupChange = undefined
+			user.filetable.get(msg).then((file) => setData(file))
+		},
+		[data]
+	)
 
 	function handleClick() {
 		setMenu(!menu)
 	}
 
 	async function copy() {
-		await navigator.clipboard.writeText(msg)
+		await navigator.clipboard.writeText(data)
 	}
 
 	async function download() {
-		const blob = msg instanceof File ? msg : new File([msg], id, { type: "text/plain", lastModified: date })
+		const blob = data instanceof File ? data : new File([data], id, { type: "text/plain", lastModified: date })
 		const link = document.createElement("a")
 		const blobUrl = URL.createObjectURL(blob)
 		link.download = blob.name
@@ -42,7 +53,7 @@ export default function MessageBox({ message,onThread, onDelete }) {
 					>
 						Download
 					</button>
-					<Hide show={!(msg instanceof Blob)}>
+					<Hide show={!(data instanceof Blob)}>
 						<button
 							onClick={copy}
 							className="px-4 py-2 text-menu-text bg-menu-bg hover:bg-menu-hover text-left"
@@ -62,13 +73,15 @@ export default function MessageBox({ message,onThread, onDelete }) {
 			</div>
 		</Hide>
 		<h3 className="font-bold">{name}</h3>
-		<MessageView message={msg} onDownload={download} />
+		<MessageView message={data} onDownload={download} />
 		<small><time>{date.toLocaleString()}</time></small>
 	</section>
 }
 
-function MessageView({ message, onDownload}) {
-	if (message instanceof File) {
+function MessageView({ message, onDownload }) {
+	if (!isDefined(message)) {
+		return <p className="italic">loading...</p>
+	} else if (message instanceof File) {
 		return <button
 			onClick={onDownload}
 			className="block w-full px-4 py-2 text-menu-text bg-menu-bg hover:bg-menu-hover text-left">

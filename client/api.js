@@ -1,5 +1,5 @@
 export default function (url, authToken = null) {
-	return async function (data) {
+	return async function (data = {}) {
 		try {
 			const headers = {
 				"Content-Type": "application/json"

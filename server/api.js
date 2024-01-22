@@ -11,7 +11,22 @@ async function register(req, res) {
 	res.send({ "msg": "User registered successfully." })
 
 }
-
+//serverconfig
+async function config(req, res) {
+	return res.status(200).json({
+		websocket: "ws://localhost:3000/",
+		iceProxies: [
+			{
+				"urls": ["stun:172.18.141.254:3478"],
+			},
+			{
+				"urls": ["turn:172.18.141.254:3478"],
+				username: "chris",
+				credential: "1234"
+			}
+		]
+	})
+}
 async function login(req, res) {
 
 	const { username, password } = req.body
@@ -41,11 +56,11 @@ async function searchUser(req, res) {
 	const { username } = req.body
 	const user = await User.findOne({ username })
 	if (user) {
-		return res.status(200).json({ success:true })
+		return res.status(200).json({ success: true })
 	}
 
 	return res.status(200).send({
-		success:false,
+		success: false,
 		message: "User Not Found"
 	})
 }
@@ -64,6 +79,10 @@ export default function () {
 	route.post(
 		"/search",
 		searchUser
+	)
+	route.post(
+		"/config",
+		config
 	)
 	return route
 
