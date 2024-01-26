@@ -35,8 +35,10 @@ export default function MessageBox({ message, onThread, onDelete }) {
 		document.body.removeChild(link)
 		URL.revokeObjectURL(blobUrl)
 	}
-
-	return <section className="bg-secondary-bg text-secondary-text m-5 w-1/2 p-4" onClick={() => handleClick()}>
+	const isCurrentUser = user && user.name === name;
+	return <section    className={`max-w-sm rounded overflow-hidden shadow-lg bg-secondary-bg text-secondary-text m-5 p-4 ${
+        isCurrentUser ? "ml-auto" : "mr-auto"
+      }`}onClick={() => handleClick()}>
 		<Hide show={menu}>
 			<div className="relative w-full mt-2 w-48 rounded-md shadow-lg bg-menu-bg ring-1 ring-black ring-opacity-5">
 				<div className="px-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">

@@ -1,10 +1,10 @@
 import { openDB } from "idb"
 import api from "./api.js"
-import { Base64ToBlob } from "./Blob64.js"
+import { blobToBase64 } from "./Blob64.js"
 import FileTable from "./FileTable.js"
 import GroupMap from "./GroupMap.js"
 import SocketInit from "./SocketInit"
-import { isDefined, JWTdecode } from "./utils.js"
+import { JWTdecode } from "./utils.js"
 
 export class UserAuth {
 	constructor() {
@@ -91,8 +91,31 @@ export class UserAuth {
 		) : null
 	}
 	async handleRecieve(data) {
-		if (isDefined(data.file)) {
-			console.log(data)
+		if (data.file) {
+			switch (data.action) {
+				case 'request':
+					this.connect.socketMap.send({
+						ref: data.replyId,
+						id: this.clientID,
+						ack: await this.filetable.has(data.hash),
+						hash: data.hash
+					}, data.id)
+					break
+				case 'retrive':
+					let file = await this.filetable.get(data.hash)
+					if (file instanceof File) {
+						file = await blobToBase64(file		)
+					}
+					this.connect.socketMap.send({
+						ref: data.replyId,
+						id: this.clientID,
+						hash: data.hash,
+						file
+					}, data.id)
+					console.log(data)
+					break
+			}
+
 			return
 		}
 		return await this.groupMap.pull(data)
@@ -133,9 +156,8 @@ export class UserAuth {
 
 	async sendNewMessage(group, message, parentId) {
 		await this.filetable.add(message)
-		// if (message instanceof File) {
-		// 	message = await blobToBase64(message)
-		// }
+
+		//move this to UserAuth
 		const data = {
 			"name": this.data.body.user,
 			message,
@@ -179,7 +201,7 @@ export class UserAuth {
 	async signIn(username, password) {
 		const loginRequest = api("/login")
 		const persist = await navigator.storage.persist()
-		if(!persist){
+		if (!persist) {
 			alert("Need Persist Storage Permission to Continue.")
 			return
 		}

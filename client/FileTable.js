@@ -43,7 +43,7 @@ export default class FileTable {
 	}
 	async inc(hash) {
 		const data = await this.db.get("files", hash)
-		if (isDefined(data)){
+		if (isDefined(data)) {
 			data.count += 1
 			await this.db.put("files", data, hash)
 			return true
@@ -51,18 +51,19 @@ export default class FileTable {
 		return false
 	}
 	async has(hash) {
-		return await this.db.getKey("files", hash) === hash
+		const data = await this.db.get("files", hash)
+		return isDefined(data) && data.count > 0
 	}
 	async delete(hash) {
 		const data = await this.db.get("files", hash)
 		if (!isDefined(data)) {
-			return
+			return //false
 		}
 		data.count -= 1
 		if (data.count <= 0) {
-			await this.db.delete("files", hash)
+			await this.db.delete("files", hash)//false
 		} else {
-			await this.db.put("files", data, hash)
+			await this.db.put("files", data, hash)//true
 		}
 	}
 }

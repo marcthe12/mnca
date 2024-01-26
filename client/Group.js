@@ -1,5 +1,5 @@
 import VectorClock from "./VectorClock.js"
-import { log } from "./utils.js"
+import { Base64ToBlob } from "./Blob64.js"
 
 function notifyUserChange(action, user) {
 	if ("Notification" in window) {
@@ -8,7 +8,7 @@ function notifyUserChange(action, user) {
 				console.log("notification")
 				const notification = new Notification(`User ${user} has ${action}.`)
 			}
-		})
+		})		
 	} else {
 		console.log("Browser does not support notifications.")
 	}
@@ -132,11 +132,11 @@ export default class Group {
 			const ver_a = new VectorClock(a.version)
 			const ver_b = new VectorClock(b.version)
 			switch (ver_a.compare(ver_b)) {
-			case "less": return -1
-			case "greater": return 1
-			case "equal":
-			case "concurrent":
-				return 0
+				case "less": return -1
+				case "greater": return 1
+				case "equal":
+				case "concurrent":
+					return 0
 			}
 		})
 		const group = {
@@ -147,24 +147,24 @@ export default class Group {
 		}
 		for (const event of events) {
 			switch (event.operation) {
-			case "rename":
-				if (event.timestamp.time > group.name.timestamp.time || (event.timestamp.time === group.name.timestamp.time && event.timestamp.id > group.name.timestamp.id)) {
-					group.name.value = event.name
-					group.name.timestamp = event.timestamp
-				}
-				break
-			case "removeUser":
-				event.uuids.map(uuid => group.users.delete(uuid))
-				break
-			case "addUser":
-				group.users.set(event.uuid, event.user)
-				break
-			case "addMessage":
-				group.messages.set(event.uuid, event.message)
-				break
-			case "removeMessage":
-				event.uuids.map(uuid => group.messages.delete(uuid))
-				break
+				case "rename":
+					if (event.timestamp.time > group.name.timestamp.time || (event.timestamp.time === group.name.timestamp.time && event.timestamp.id > group.name.timestamp.id)) {
+						group.name.value = event.name
+						group.name.timestamp = event.timestamp
+					}
+					break
+				case "removeUser":
+					event.uuids.map(uuid => group.users.delete(uuid))
+					break
+				case "addUser":
+					group.users.set(event.uuid, event.user)
+					break
+				case "addMessage":
+					group.messages.set(event.uuid, event.message)
+					break
+				case "removeMessage":
+					event.uuids.map(uuid => group.messages.delete(uuid))
+					break
 			}
 		}
 		await this.db.put("groupState", group)
@@ -180,8 +180,43 @@ export default class Group {
 		}
 		for (const hash of newMessageHashes) {
 			if (!await this.userAuth.filetable.inc(hash)) {
+				const ref = crypto.randomUUID()
+				this.userAuth.connect.socketMap.registerCallAll(async (data, unsubscribe) => {
+					console.log(data)
+					const ref = crypto.randomUUID()
+					if (data.ack) {
+						this.userAuth.connect.socketMap.registerCall(data.id, async (data, unsubscribe) => {
+							console.log(data)
+							unsubscribe()//function to undo the Blob 	if (file instanceof File) {
+							// 	file = await blobToBase64(message)
+							// }
+							if (typeof data.file === "object") {
+								data.file = await Base64ToBlob(data.file)
+							}
+							await this.userAuth.filetable.add(data.file)
+							//verify hash data with hash and insert and increment to file table.
+							 // Verify hash and insert if not exists
+							//  if (!hashExists) {
+							// 	await this.filetable.insert(data.hash, 1); // Assuming insert method takes hash and count
+							// } else {
+							// 	// Increment count if hash already exists
+							// 	await this.filetable.incrementCount(data.hash);
+							// }
+							// break;
+						}, ref)
+						await this.userAuth.connect.socketMap.send({
+							action: "retrive",
+							file: true,
+							id: this.replicaId,
+							replyId: ref,
+							hash: data.hash
+						}, data.id)
+						unsubscribe()
+					}
+				}, ref, ...newvar.users)
 				await this.userAuth.connect.socketMap.sendAllClients({
 					id: this.replicaId,
+					replyId: ref,
 					file: true,
 					hash,
 					action: "request"

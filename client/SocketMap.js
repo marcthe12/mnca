@@ -75,6 +75,7 @@ export default class SocketMap {
 				channel.addEventListener("open", async () => {
 					this.channel = channel
 					await this.onConnect(this.user, this.id)
+					console.log(this)
 				})
 
 				channel.addEventListener("message", async (event) => {
@@ -187,4 +188,5 @@ export default class SocketMap {
 	get values() {
 		return Array.from(this.mapping.values())
 	}
+	
 }
