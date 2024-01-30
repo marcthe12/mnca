@@ -1,12 +1,15 @@
 import { isDefined } from "./utils"
 
 export default class FileTable {
-	constructor(userauth) {
+	constructor(userAuth) {
 		this.values = new Map()
-		this.userauth = userauth
+		this.userAuth = userAuth
 	}
 	get db() {
-		return this.userauth.db
+		return this.userAuth.db
+	}
+	get replicaId() {
+		return this.userAuth.clientID
 	}
 	async hash(data) {
 		let view
@@ -30,7 +33,49 @@ export default class FileTable {
 		const digest = [...new Uint8Array(await crypto.subtle.digest("SHA-256", view))]
 		return digest.map(b => b.toString(16).padStart(2, "0")).join("")
 
-
+	}
+	async requestFile(hash){
+		const ref = crypto.randomUUID()
+		this.userAuth.connect.socketMap.registerCallAll(async (data, unsubscribe) => {
+			console.log(data)
+			const ref = crypto.randomUUID()
+			if (data.ack) {
+				this.userAuth.connect.socketMap.registerCall(data.id, async (data, unsubscribe) => {
+					console.log(data)
+					unsubscribe()//function to undo the Blob 	if (file instanceof File) {
+					// 	file = await blobToBase64(message)
+					// }
+					if (typeof data.file === "object") {
+						data.file = await Base64ToBlob(data.file)
+					}
+					await this.add(data.file)
+					//verify hash data with hash and insert and increment to file table.
+					// Verify hash and insert if not exists
+					//  if (!hashExists) {
+					// 	await this.filetable.insert(data.hash, 1); // Assuming insert method takes hash and count
+					// } else {
+					// 	// Increment count if hash already exists
+					// 	await this.filetable.incrementCount(data.hash);
+					// }
+					// break;
+				}, ref)
+				await this.userAuth.connect.socketMap.send({
+					action: "retrive",
+					file: true,
+					id: this.replicaId,
+					replyId: ref,
+					hash: data.hash
+				}, data.id)
+				unsubscribe()
+			}
+		}, ref, ...newvar.users)
+		await this.userAuth.connect.socketMap.sendAllClients({
+			id: this.replicaId,
+			replyId: ref,
+			file: true,
+			hash,
+			action: "request"
+		}, ...newvar.users)
 	}
 	async get(hash) {
 		return (await this.db.get("files", hash))?.value
@@ -38,6 +83,7 @@ export default class FileTable {
 	async add(value) {
 		const key = await this.hash(value)
 		const data = await this.db.get("files", key) ?? { value, count: 0 }
+		console.log({data,key})
 		await this.db.put("files", data, key)
 		return key
 	}

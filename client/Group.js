@@ -1,5 +1,6 @@
 import VectorClock from "./VectorClock.js"
 import { Base64ToBlob } from "./Blob64.js"
+import { isDefined } from "./utils.js"
 
 function notifyUserChange(action, user) {
 	if ("Notification" in window) {
@@ -8,7 +9,7 @@ function notifyUserChange(action, user) {
 				console.log("notification")
 				const notification = new Notification(`User ${user} has ${action}.`)
 			}
-		})		
+		})
 	} else {
 		console.log("Browser does not support notifications.")
 	}
@@ -46,29 +47,53 @@ export default class Group {
 	}
 	async initialize(users) {
 		await Promise.all(users.map(elements => this.userAuth.connect.socketMap.addUser(elements)))
+		//refresh and initialize 
 		await this.store()
 		await this.open()
-		await this.userAuth.connect.socketMap.sendAllClients({
+		await this.userAuth.connect.socketMap.sendAllClients({//fallback when set of users are sent to initialize
+			//until successful
 			groupId: this.groupId,
 			id: this.replicaId,
 			version: this.version.state
 		}, ...users)
+
 	}
 	async delete() {
 		await this.db.delete("groupState", this.groupId)
 		await this.db.delete("groupVersion", this.groupId)
+		await this.db.delete("groupUserHint", this.groupId)
 		const toDelete = await this.db.getAllKeysFromIndex("groupLog", "groupIndex") ?? []
 		const trans = this.db.transaction("groupLog", "readwrite")
 		await Promise.all(toDelete.map(k => trans.store.delete(k)))
 		await trans.done
 	}
+	//lightbulb if user==0 then
+	//if(no users??)
+	//if count(groupLog where groupID) == 0
+	//other place : set of users for fallback here.... so if we figure out code
+	//we'll be able to fix the fallback issue
+	//put this in UI!!!!!(!imp) disable somestuff until its fixed...
+	//one more condition, other problem will be able to soleve:when log is deleted, use this to reset
 
 	async getState() {
-		return await this.db.get("groupState", this.groupId) ?? {
-			groupId: this.groupId,
-			users: new Map(),
-			name: { value: "", timestamp: { time: 0 } },
-			messages: new Map()
+		const groupstate = await this.db.get("groupState", this.groupId)
+		if (isDefined(groupstate)) {
+			return groupstate
+		}
+		else {
+			const newstate = {
+				groupId: this.groupId,
+				users: new Map(),
+				name: { value: "", timestamp: { time: 0 } },
+				messages: new Map()
+			}
+			if((await this.db.getAllFromIndex("groupLog", "groupIndex", this.groupId) ?? []).length === 0){
+				//from db import setofusers being stored
+				//add each one to the map.(key,value) being the same
+				const users = await this.db.get("groupUserHint", this.groupId)?? []
+				users.forEach(user => newstate.users.set(user,user))				
+			}
+			return newstate
 		}
 	}
 	async getValue() {
@@ -106,7 +131,7 @@ export default class Group {
 			await this.db.put("groupVersion", this.version.state, this.groupId)
 			await this.store(...events)
 		}
-
+		this.version ??= new VectorClock()
 		if (version.compare(this.version) !== "equal") { //if its a greater version update that?
 			const items = await this.db.getAllFromIndex("groupLog", "groupIndex", this.groupId) ?? []
 			await this.userAuth.connect.socketMap.send({
@@ -180,47 +205,7 @@ export default class Group {
 		}
 		for (const hash of newMessageHashes) {
 			if (!await this.userAuth.filetable.inc(hash)) {
-				const ref = crypto.randomUUID()
-				this.userAuth.connect.socketMap.registerCallAll(async (data, unsubscribe) => {
-					console.log(data)
-					const ref = crypto.randomUUID()
-					if (data.ack) {
-						this.userAuth.connect.socketMap.registerCall(data.id, async (data, unsubscribe) => {
-							console.log(data)
-							unsubscribe()//function to undo the Blob 	if (file instanceof File) {
-							// 	file = await blobToBase64(message)
-							// }
-							if (typeof data.file === "object") {
-								data.file = await Base64ToBlob(data.file)
-							}
-							await this.userAuth.filetable.add(data.file)
-							//verify hash data with hash and insert and increment to file table.
-							 // Verify hash and insert if not exists
-							//  if (!hashExists) {
-							// 	await this.filetable.insert(data.hash, 1); // Assuming insert method takes hash and count
-							// } else {
-							// 	// Increment count if hash already exists
-							// 	await this.filetable.incrementCount(data.hash);
-							// }
-							// break;
-						}, ref)
-						await this.userAuth.connect.socketMap.send({
-							action: "retrive",
-							file: true,
-							id: this.replicaId,
-							replyId: ref,
-							hash: data.hash
-						}, data.id)
-						unsubscribe()
-					}
-				}, ref, ...newvar.users)
-				await this.userAuth.connect.socketMap.sendAllClients({
-					id: this.replicaId,
-					replyId: ref,
-					file: true,
-					hash,
-					action: "request"
-				}, ...newvar.users)
+				await this.userAuth.filetable.requestFile(hash)
 			}
 		}
 

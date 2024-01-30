@@ -91,18 +91,23 @@ export default class SocketMap {
 				})
 			},
 			async send(data) {
-				const msg = JSON.stringify(data)
-				await new Promise((resolve) => {
-					const checkValue = () => {
-						if (this.channel !== undefined) {
-							resolve(this.channel)
-						} else {
-							setTimeout(checkValue, 100)
+				try {
+					const msg = JSON.stringify(data)
+					await new Promise((resolve) => {
+						const checkValue = () => {
+							if (this.channel !== undefined) {
+								resolve(this.channel)
+							} else {
+								setTimeout(checkValue, 100)
+							}
 						}
-					}
-					checkValue()
-				})
-				this.channel.send(msg)
+						checkValue()
+					})
+					this.channel.send(msg)
+				} catch (e) {
+					console.error(e)
+				}
+
 			}
 		}
 		this.mapping.set(recv, conn)
@@ -188,5 +193,23 @@ export default class SocketMap {
 	get values() {
 		return Array.from(this.mapping.values())
 	}
-	
+	async compressString(str) {
+		const encoder = new TextEncoder();
+		const data = encoder.encode(str);
+
+		const compressedData = await new Response(data).body.pipeThrough(new CompressionStream("gzip"));
+		const reader = compressedData.getReader();
+
+		let compressedChunks = [];
+		while (true) {
+			const { done, value } = await reader.read();
+			if (done) {
+				break;
+			}
+			compressedChunks.push(value);
+		}
+
+		// Concatenate all compressed chunks into a single Uint8Array
+		return new Uint8Array(await new Blob(compressedChunks).arrayBuffer());
+	}
 }

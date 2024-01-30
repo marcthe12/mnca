@@ -51,7 +51,7 @@ export class UserAuth {
 		return this.token ? JWTdecode(this.token) : null
 	}
 	async dbconnect() {
-		this.db = this.token ? await openDB(this.data.body.user, 5,
+		this.db = this.token ? await openDB(this.data.body.user, 6,
 			{
 				upgrade(db) {
 					db.createObjectStore(
@@ -85,6 +85,9 @@ export class UserAuth {
 					)
 					db.createObjectStore(
 						"files"
+					)
+					db.createObjectStore(
+						"groupUserHint",
 					)
 				}
 			}
