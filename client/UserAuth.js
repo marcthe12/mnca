@@ -96,27 +96,26 @@ export class UserAuth {
 	async handleRecieve(data) {
 		if (data.file) {
 			switch (data.action) {
-				case 'request':
-					this.connect.socketMap.send({
-						ref: data.replyId,
-						id: this.clientID,
-						ack: await this.filetable.has(data.hash),
-						hash: data.hash
-					}, data.id)
-					break
-				case 'retrive':
-					let file = await this.filetable.get(data.hash)
-					if (file instanceof File) {
-						file = await blobToBase64(file		)
-					}
-					this.connect.socketMap.send({
-						ref: data.replyId,
-						id: this.clientID,
-						hash: data.hash,
-						file
-					}, data.id)
-					console.log(data)
-					break
+			case "request":
+				this.connect.socketMap.send({
+					ref: data.replyId,
+					id: this.clientID,
+					ack: await this.filetable.has(data.hash),
+					hash: data.hash
+				}, data.id)
+				break
+			case "retrive":
+				let file = await this.filetable.get(data.hash)
+				if (file instanceof File) {
+					file = await blobToBase64(file		)
+				}
+				this.connect.socketMap.send({
+					ref: data.replyId,
+					id: this.clientID,
+					hash: data.hash,
+					file
+				}, data.id)
+				break
 			}
 
 			return
@@ -157,33 +156,8 @@ export class UserAuth {
 		await this.groupMap.leaveGroup(id)
 	}
 
-	async sendNewMessage(group, message, parentId) {
-		await this.filetable.add(message)
-
-		//move this to UserAuth
-		const data = {
-			"name": this.data.body.user,
-			message,
-			"date": new Date(),
-			groupId: group.groupId,
-			parentId,
-			"messageId": crypto.randomUUID()
-		}
-		return data
-	}
-	async recieveNewMessage(message) {
-		message.date = new Date(message.date)
-		if (typeof message.message === "object") {
-			message.message = await Base64ToBlob(message.message)
-		}
-		await this.groupMap.addMessage(message.groupId, message)
-	}
-
 	async addNewMessage(group, message, parentId) {
 		const digest = await this.filetable.add(message)
-		// if (message instanceof File) {
-		// 	message = await blobToBase64(message)
-		// }
 		const msg = {
 			name: this.data.body.user,
 			message: digest,
@@ -192,9 +166,6 @@ export class UserAuth {
 			parentId,
 			messageId: crypto.randomUUID()
 		}
-		// if (typeof msg.message === "object") {
-		// 	msg.message = await Base64ToBlob(msg.message)
-		// }
 		await this.groupMap.addMessage(msg.groupId, msg)
 	}
 	async removeMessage(message) {

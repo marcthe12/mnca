@@ -1,13 +1,11 @@
 import VectorClock from "./VectorClock.js"
-import { Base64ToBlob } from "./Blob64.js"
 import { isDefined } from "./utils.js"
 
-function notifyUserChange(action, user) {
+function notifyUserChange(msg) {
 	if ("Notification" in window) {
 		Notification.requestPermission().then(permission => {
 			if (permission === "granted") {
-				console.log("notification")
-				const notification = new Notification(`User ${user} has ${action}.`)
+				new Notification(msg)
 			}
 		})
 	} else {
@@ -87,11 +85,11 @@ export default class Group {
 				name: { value: "", timestamp: { time: 0 } },
 				messages: new Map()
 			}
-			if((await this.db.getAllFromIndex("groupLog", "groupIndex", this.groupId) ?? []).length === 0){
+			if ((await this.db.getAllFromIndex("groupLog", "groupIndex", this.groupId) ?? []).length === 0) {
 				//from db import setofusers being stored
 				//add each one to the map.(key,value) being the same
-				const users = await this.db.get("groupUserHint", this.groupId)?? []
-				users.forEach(user => newstate.users.set(user,user))				
+				const users = await this.db.get("groupUserHint", this.groupId) ?? []
+				users.forEach(user => newstate.users.set(user, user))
 			}
 			return newstate
 		}
@@ -173,7 +171,11 @@ export default class Group {
 		for (const event of events) {
 			switch (event.operation) {
 				case "rename":
-					if (event.timestamp.time > group.name.timestamp.time || (event.timestamp.time === group.name.timestamp.time && event.timestamp.id > group.name.timestamp.id)) {
+					if (
+						event.timestamp.time > group.name.timestamp.time
+						|| ( event.timestamp.time === group.name.timestamp.time && event.timestamp.id > group.name.timestamp.id
+						)
+					) {
 						group.name.value = event.name
 						group.name.timestamp = event.timestamp
 					}
@@ -205,12 +207,13 @@ export default class Group {
 		}
 		for (const hash of newMessageHashes) {
 			if (!await this.userAuth.filetable.inc(hash)) {
-				await this.userAuth.filetable.requestFile(hash)
+//				await this.userAuth.filetable.requestFile(hash, newvar.users, file => console.log(file))
 			}
 		}
 
-		newUsers.forEach(user => notifyUserChange("entered", user))
-		removedUsers.forEach(user => notifyUserChange("left", user))
+		newUsers.forEach(user => notifyUserChange(`User ${user} has entered ${newvar.name}`))
+		removedUsers.forEach(user => notifyUserChange(`User ${user} has left ${newvar.name}`))
+		newMessages.forEach(msg => notifyUserChange(`New Message from ${msg.name} in ${newvar.name}`))
 		console.log("Added messages:", newMessages)
 		console.log("Removed messages:", removedMessages)
 		console.log("Added users:", newUsers)

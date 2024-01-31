@@ -2,19 +2,23 @@ import Hide from "./Hide.jsx"
 import { useState, useEffect } from "react"
 import { useUser } from "./UserProvider.jsx"
 import { isDefined } from "../utils.js"
-export default function MessageBox({ message, onThread, onDelete }) {
+
+export default function MessageBox({ message, onThread, onDelete, recpt }) {
 	const user = useUser()
 	const { messageId: id, name, "message": msg, date } = message
 	const [menu, setMenu] = useState(false)
 	const [data, setData] = useState(null)
 	useEffect(
 		() => {
-			// user.onGroupChange = (grouplist) => setGroups(grouplist)
-			// user.getGroups()
-			// return () => user.onGroupChange = undefined
-			user.filetable.get(msg).then((file) => setData(file))
+			(async () => {
+				const res = await user.filetable.get(msg)
+				setData(res)
+				if (!isDefined(res)) {
+					await user.filetable.requestFile(msg, recpt, file => setData(file))
+				}
+			})()
 		},
-		[data]
+		[]
 	)
 
 	function handleClick() {
@@ -32,13 +36,13 @@ export default function MessageBox({ message, onThread, onDelete }) {
 		link.download = blob.name
 		link.href = blobUrl
 		document.body.append(link)
+		link.click()
 		document.body.removeChild(link)
 		URL.revokeObjectURL(blobUrl)
 	}
-	const isCurrentUser = user && user.name === name;
-	return <section    className={`max-w-sm rounded overflow-hidden shadow-lg bg-secondary-bg text-secondary-text m-5 p-4 ${
-        isCurrentUser ? "ml-auto" : "mr-auto"
-      }`}onClick={() => handleClick()}>
+	const isCurrentUser = user && user.name === name
+	return <section className={`max-w-sm rounded overflow-hidden shadow-lg bg-secondary-bg text-secondary-text m-5 p-4 ${isCurrentUser ? "ml-auto" : "mr-auto"
+		}`} onClick={() => handleClick()}>
 		<Hide show={menu}>
 			<div className="relative w-full mt-2 w-48 rounded-md shadow-lg bg-menu-bg ring-1 ring-black ring-opacity-5">
 				<div className="px-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">

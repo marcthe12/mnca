@@ -75,11 +75,11 @@ export default class SocketMap {
 				channel.addEventListener("open", async () => {
 					this.channel = channel
 					await this.onConnect(this.user, this.id)
-					console.log(this)
 				})
 
 				channel.addEventListener("message", async (event) => {
 					const message = JSON.parse(event.data)
+					console.log(message)
 					if (message.ref && this.callbackMap.has(message.ref)) {
 						this.callbackMap.get(message.ref)(
 							message,
@@ -194,22 +194,22 @@ export default class SocketMap {
 		return Array.from(this.mapping.values())
 	}
 	async compressString(str) {
-		const encoder = new TextEncoder();
-		const data = encoder.encode(str);
+		const encoder = new TextEncoder()
+		const data = encoder.encode(str)
 
-		const compressedData = await new Response(data).body.pipeThrough(new CompressionStream("gzip"));
-		const reader = compressedData.getReader();
+		const compressedData = await new Response(data).body.pipeThrough(new CompressionStream("gzip"))
+		const reader = compressedData.getReader()
 
-		let compressedChunks = [];
+		let compressedChunks = []
 		while (true) {
-			const { done, value } = await reader.read();
+			const { done, value } = await reader.read()
 			if (done) {
-				break;
+				break
 			}
-			compressedChunks.push(value);
+			compressedChunks.push(value)
 		}
 
 		// Concatenate all compressed chunks into a single Uint8Array
-		return new Uint8Array(await new Blob(compressedChunks).arrayBuffer());
+		return new Uint8Array(await new Blob(compressedChunks).arrayBuffer())
 	}
 }

@@ -54,6 +54,7 @@ export default class GroupMap {
 		}, this.userAuth.data.body.user)
 	}
 	async pull({ id, groupId, version, events }) {
+		console.log({ id, groupId, version, events})
 		version = new VectorClock(version)
 		events = events?.map(event => {
 			event.version = new VectorClock(event.version)
@@ -96,11 +97,11 @@ export default class GroupMap {
 			const ver_a = new VectorClock(a.version)
 			const ver_b = new VectorClock(b.version)
 			switch (ver_a.compare(ver_b)) {
-				case "less": return -1
-				case "greater": return 1
-				case "equal":
-				case "concurrent":
-					return 0
+			case "less": return -1
+			case "greater": return 1
+			case "equal":
+			case "concurrent":
+				return 0
 			}
 		})
 		const map = new Map()
@@ -108,17 +109,17 @@ export default class GroupMap {
 		await transy.store.clear()
 		for (const event of events) {
 			switch (event.operation) {
-				case "join":
-					await transy.store.add(event.groupId, event.uuid)
-					map.set(event.uuid, {
-						groupId: event.groupId,
-						users: event.users,
-					})
-					break
-				case "leave":
-					await Promise.all(event.uuids.map(uuid => transy.store.delete(uuid)))
-					event.uuids.map(uuid => map.delete(uuid))
-					break
+			case "join":
+				await transy.store.add(event.groupId, event.uuid)
+				map.set(event.uuid, {
+					groupId: event.groupId,
+					users: event.users,
+				})
+				break
+			case "leave":
+				await Promise.all(event.uuids.map(uuid => transy.store.delete(uuid)))
+				event.uuids.map(uuid => map.delete(uuid))
+				break
 			}
 		}
 		await transy.done

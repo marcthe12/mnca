@@ -47,7 +47,7 @@ export default function MainChatArea({ group, isactive }) {
 					.filter(message =>
 						message.messageId == msgStack[0]?.messageId || message.parentId == msgStack[0]?.messageId
 					).map((message) =>
-						<MessageBox key={message.messageId} message={message} onThread={PushToStack} onDelete={msg => user.removeMessage(msg)} />
+						<MessageBox key={message.messageId} message={message} onThread={PushToStack} onDelete={msg => user.removeMessage(msg)} recpt={group.users} />
 					)}
 			</div>
 			<div className="grid-row-3 p-4">

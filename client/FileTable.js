@@ -1,4 +1,5 @@
-import { isDefined } from "./utils"
+import { isDefined } from "./utils.js"
+import { Base64ToBlob } from "./Blob64.js"
 
 export default class FileTable {
 	constructor(userAuth) {
@@ -34,30 +35,24 @@ export default class FileTable {
 		return digest.map(b => b.toString(16).padStart(2, "0")).join("")
 
 	}
-	async requestFile(hash){
+	async verify(hash, value) {
+		return hash === await this.hash(value)
+	}
+	async requestFile(hash, users, onDone = async _ => { }) {
 		const ref = crypto.randomUUID()
 		this.userAuth.connect.socketMap.registerCallAll(async (data, unsubscribe) => {
-			console.log(data)
 			const ref = crypto.randomUUID()
 			if (data.ack) {
 				this.userAuth.connect.socketMap.registerCall(data.id, async (data, unsubscribe) => {
-					console.log(data)
-					unsubscribe()//function to undo the Blob 	if (file instanceof File) {
-					// 	file = await blobToBase64(message)
-					// }
+					unsubscribe()
 					if (typeof data.file === "object") {
 						data.file = await Base64ToBlob(data.file)
 					}
-					await this.add(data.file)
-					//verify hash data with hash and insert and increment to file table.
-					// Verify hash and insert if not exists
-					//  if (!hashExists) {
-					// 	await this.filetable.insert(data.hash, 1); // Assuming insert method takes hash and count
-					// } else {
-					// 	// Increment count if hash already exists
-					// 	await this.filetable.incrementCount(data.hash);
-					// }
-					// break;
+					if (await this.verify(data.hash, data.file)) {
+						await this.add(data.file)
+						await this.inc(data.hash)
+						await onDone(data.file)
+					}
 				}, ref)
 				await this.userAuth.connect.socketMap.send({
 					action: "retrive",
@@ -68,22 +63,22 @@ export default class FileTable {
 				}, data.id)
 				unsubscribe()
 			}
-		}, ref, ...newvar.users)
+		}, ref, ...users)
 		await this.userAuth.connect.socketMap.sendAllClients({
 			id: this.replicaId,
 			replyId: ref,
 			file: true,
 			hash,
 			action: "request"
-		}, ...newvar.users)
+		}, ...users)
 	}
 	async get(hash) {
 		return (await this.db.get("files", hash))?.value
 	}
+
 	async add(value) {
 		const key = await this.hash(value)
 		const data = await this.db.get("files", key) ?? { value, count: 0 }
-		console.log({data,key})
 		await this.db.put("files", data, key)
 		return key
 	}
