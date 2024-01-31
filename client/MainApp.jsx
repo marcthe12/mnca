@@ -1,15 +1,15 @@
-import {useState} from "react"
-import {useUser} from "./components/UserProvider.jsx"
-import MainArea from "./components/MainArea.jsx"
-import RegistrationForm from "./components/RegistrationForm.jsx"
-import LoginForm from "./components/LoginForm.jsx"
+import {useState} from "react";
+import {useUser} from "./components/UserProvider.jsx";
+import MainArea from "./components/MainArea.jsx";
+import RegistrationForm from "./components/RegistrationForm.jsx";
+import LoginForm from "./components/LoginForm.jsx";
 
 function Logout () {
 
 	const [
 		mode,
 		setMode
-	] = useState(true)
+	] = useState(true);
 	return (
 		<div>
 			<div>
@@ -22,16 +22,16 @@ function Logout () {
 					: <RegistrationForm />}
 			</div>
 		</div>
-	)
+	);
 
 }
 
 export default function MainApp () {
 
-	const user = useUser()
+	const user = useUser();
 
 	return user?.token
 		? <MainArea />
-		: <Logout />
+		: <Logout />;
 
 }

@@ -1,31 +1,31 @@
-import { useState } from "react"
-import { useUser } from "./UserProvider.jsx"
-import api from "../api.js"
+import { useState } from "react";
+import { useUser } from "./UserProvider.jsx";
+import api from "../api.js";
 
 export default function RegistrationForm() {
-	const user = useUser()
-	const [username, setUsername] = useState("")
-	const [password, setPassword] = useState("")
+	const user = useUser();
+	const [username, setUsername] = useState("");
+	const [password, setPassword] = useState("");
 
-	const registerRequest = api("/register")
+	const registerRequest = api("/register");
 
 	async function handleSubmit(e) {
-		e.preventDefault()
+		e.preventDefault();
 
 		await registerRequest({
 			username,
 			password,
-		})
+		});
 
-		await user.signIn(username, password)
+		await user.signIn(username, password);
 	}
 
 	function handleUsernameChange(e) {
-		setUsername(e.target.value)
+		setUsername(e.target.value);
 	}
 
 	function handlePasswordChange(e) {
-		setPassword(e.target.value)
+		setPassword(e.target.value);
 	}
 
 	return (
@@ -78,5 +78,5 @@ export default function RegistrationForm() {
 				</form>
 			</div>
 		</div>
-	)
+	);
 }

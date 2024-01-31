@@ -1,5 +1,5 @@
-import Header from "./components/Header.jsx"
-import { UserContext } from "./components/UserProvider.jsx"
+import Header from "./components/Header.jsx";
+import { UserContext } from "./components/UserProvider.jsx";
 
 export default function Layout({ children }) {
 
@@ -12,6 +12,6 @@ export default function Layout({ children }) {
 				{children}
 			</div>
 		</div>
-	</UserContext >
+	</UserContext >;
 
 }

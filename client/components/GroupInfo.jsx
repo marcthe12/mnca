@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react"
-import { useUser } from "./UserProvider.jsx"
-import Hide from "./Hide.jsx"
-import api from "../api.js"
+import { useState, useEffect } from "react";
+import { useUser } from "./UserProvider.jsx";
+import Hide from "./Hide.jsx";
+import api from "../api.js";
 
 function UserItem({ user, connection, onDelete }) {
-	const userContext = useUser()
-	const current_user = user === userContext.data.body.user
+	const userContext = useUser();
+	const current_user = user === userContext.data.body.user;
 
 	return <li className="p-4 w-full grid grid-cols-[1fr,auto,auto] rounded shadow">
 		<span className="grid-cols-1">{user}</span>
@@ -18,37 +18,37 @@ function UserItem({ user, connection, onDelete }) {
 				-
 			</button>
 		</Hide>
-	</li>
+	</li>;
 }
 function UserList({ users, onAdd, onRemove }) {
-	const [search, setSearch] = useState("")
-	const [errorMsg, setErrorMsg] = useState("")
-	const [status, setStatus] = useState([])
-	const user = useUser()
+	const [search, setSearch] = useState("");
+	const [errorMsg, setErrorMsg] = useState("");
+	const [status, setStatus] = useState([]);
+	const user = useUser();
 
 	useEffect(() => {
-		setStatus(user.connect.socketMap.values)
-		user.connect.socketMap.onChange = values => setStatus(values)
+		setStatus(user.connect.socketMap.values);
+		user.connect.socketMap.onChange = values => setStatus(values);
 		return () => {
-			user.connect.socketMap.onChange = undefined
-		}
-	}, [])
+			user.connect.socketMap.onChange = undefined;
+		};
+	}, []);
 
 	async function addUser() {
-		const searchRequest = api("/search", user.token)
+		const searchRequest = api("/search", user.token);
 		if (users.has(search)) {
-			setErrorMsg("User already added!")
-			return
+			setErrorMsg("User already added!");
+			return;
 		}
-		const { success, message = "" } = await searchRequest({ username: search })
+		const { success, message = "" } = await searchRequest({ username: search });
 		if (!success) {
-			setErrorMsg(message)
-			return
+			setErrorMsg(message);
+			return;
 		}
-		await onAdd(search)
+		await onAdd(search);
 	}
 	async function removeUser(user) {
-		await onRemove(user)
+		await onRemove(user);
 	}
 
 	return <div className=" px-2 border w-full h-40 overflow-auto">
@@ -73,35 +73,35 @@ function UserList({ users, onAdd, onRemove }) {
 				)
 			}
 		</ul>
-	</div>
+	</div>;
 }
 
 export default function GroupInfo({ onClose, group }) {
-	const [name, setName] = useState(group.name)
-	const user = useUser()
+	const [name, setName] = useState(group.name);
+	const user = useUser();
 
 	async function copyGroupIdToClipboard() {
-		await navigator.clipboard.writeText(group.groupId)
+		await navigator.clipboard.writeText(group.groupId);
 	}
 
 	function rename() {
-		user.renameGroup(name, { ...group, name })
+		user.renameGroup(name, { ...group, name });
 	}
 
 	async function AddUsers(userId) {
-		await user.addUser(userId, { ...group, users: new Set([...group.users, userId]) })
-		await user.addGroupCall(userId, group)
+		await user.addUser(userId, { ...group, users: new Set([...group.users, userId]) });
+		await user.addGroupCall(userId, group);
 	}
 
 	async function RmUsers(userId) {
-		const newGroupObj = { ...group, users: new Set(group.users) }
-		newGroupObj.users.delete(userId)
-		await user.removeUser(userId, newGroupObj)
-		await user.deleteGroupCall(userId, group.groupId)
+		const newGroupObj = { ...group, users: new Set(group.users) };
+		newGroupObj.users.delete(userId);
+		await user.removeUser(userId, newGroupObj);
+		await user.deleteGroupCall(userId, group.groupId);
 	}
 
 	function gDelete() {
-		user.deleteGroup(group.groupId)
+		user.deleteGroup(group.groupId);
 	}
 
 	return (
@@ -154,6 +154,6 @@ export default function GroupInfo({ onClose, group }) {
 				</div>
 			</div>
 		</div>
-	)
+	);
 
 }

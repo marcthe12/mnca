@@ -1,26 +1,26 @@
-import { useEffect, useState } from "react"
-import MainChatArea from "./MainChatArea.jsx"
-import TabButton from "./TabButton.jsx"
-import UserMenu from "./UserMenu.jsx"
-import { useUser } from "./UserProvider.jsx"
+import { useEffect, useState } from "react";
+import MainChatArea from "./MainChatArea.jsx";
+import TabButton from "./TabButton.jsx";
+import UserMenu from "./UserMenu.jsx";
+import { useUser } from "./UserProvider.jsx";
 
 export default function MainArea() {
-	const user = useUser()
-	const [activeTab, setActiveTab] = useState(0)
-	const [groups, setGroups] = useState([])
+	const user = useUser();
+	const [activeTab, setActiveTab] = useState(0);
+	const [groups, setGroups] = useState([]);
 
 	async function GroupAddHandler(group) {
-		user.createGroup(group)
+		user.createGroup(group);
 	}
 
 	useEffect(
 		() => {
-			user.onGroupChange = (grouplist) => setGroups(grouplist)
-			user.getGroups()
-			return () => user.onGroupChange = undefined
+			user.onGroupChange = (grouplist) => setGroups(grouplist);
+			user.getGroups();
+			return () => user.onGroupChange = undefined;
 		},
 		[user]
-	)
+	);
 
 	return (
 		<>
@@ -34,7 +34,7 @@ export default function MainArea() {
 				{groups.map((tab, index) => <MainChatArea group={tab} isactive={index == activeTab} key={index} />)}
 			</div>
 		</>
-	)
+	);
 
 }
 

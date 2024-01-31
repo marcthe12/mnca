@@ -1,35 +1,35 @@
-import { useState } from "react"
-import MessageBox from "./MessageBox.jsx"
-import SendBox from "./SendBox.jsx"
-import Hide from "./Hide.jsx"
-import { useUser } from "./UserProvider.jsx"
-import GroupInfo from "./GroupInfo.jsx"
-import Modal from "./Modal.jsx"
+import { useState } from "react";
+import MessageBox from "./MessageBox.jsx";
+import SendBox from "./SendBox.jsx";
+import Hide from "./Hide.jsx";
+import { useUser } from "./UserProvider.jsx";
+import GroupInfo from "./GroupInfo.jsx";
+import Modal from "./Modal.jsx";
 
 export default function MainChatArea({ group, isactive }) {
-	const [isModalOpen, setModalState] = useState(false)
-	const user = useUser()
-	const [msgStack, setMsgStack] = useState([])
+	const [isModalOpen, setModalState] = useState(false);
+	const user = useUser();
+	const [msgStack, setMsgStack] = useState([]);
 
-	const { messages } = group
+	const { messages } = group;
 
 	function PushToStack(msg) {
-		setMsgStack([msg, ...msgStack])
+		setMsgStack([msg, ...msgStack]);
 	}
 	function PopFromStack() {
-		setMsgStack(msgStack.slice(1))
+		setMsgStack(msgStack.slice(1));
 	}
 	async function SendHandler(message) {
-		user.addNewMessage(group, message, msgStack[0]?.messageId)
+		user.addNewMessage(group, message, msgStack[0]?.messageId);
 	}
 
 	const ModalOpen = () => {
-		setModalState(true)
-	}
+		setModalState(true);
+	};
 
 	const ModalClose = () => {
-		setModalState(false)
-	}
+		setModalState(false);
+	};
 
 	return <Hide show={isactive}>
 		<main className="grid grid-rows-[auto,1fr,auto] h-full">
@@ -54,5 +54,5 @@ export default function MainChatArea({ group, isactive }) {
 				<SendBox onSend={SendHandler} />
 			</div>
 		</main >
-	</Hide >
+	</Hide >;
 }

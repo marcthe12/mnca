@@ -1,11 +1,11 @@
-import js from "@eslint/js"
-import globals from "globals"
-import reactRecommended from "eslint-plugin-react/configs/recommended.js"
-import reactJSX from "eslint-plugin-react/configs/jsx-runtime.js"
-import reactHooks from "eslint-plugin-react-hooks"
+import js from "@eslint/js";
+import globals from "globals";
+import reactRecommended from "eslint-plugin-react/configs/recommended.js";
+import reactJSX from "eslint-plugin-react/configs/jsx-runtime.js";
+import reactHooks from "eslint-plugin-react-hooks";
 
-const browser = {...globals.browser}
-delete browser["AudioWorkletGlobalScope "]
+const browser = {...globals.browser};
+delete browser["AudioWorkletGlobalScope "];
 
 export default [
 	js.configs.recommended,
@@ -19,12 +19,7 @@ export default [
 				"error",
 				"double"
 			],
-			"semi": [
-				"error",
-				"never"
-			],
 			"no-tabs": ["off"]
-
 		}
 	},
 	{
@@ -69,5 +64,5 @@ export default [
 		}
 
 	}
-]
+];
 

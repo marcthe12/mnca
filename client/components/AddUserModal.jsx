@@ -1,13 +1,13 @@
-import { useState } from "react"
+import { useState } from "react";
 
 export default function AddUserModal({ isOpen, onClose, onAddUser }) {
-	const [newUser, setNewUser] = useState("")
+	const [newUser, setNewUser] = useState("");
 
 	const handleAddUser = () => {
-		onAddUser(newUser)
-		setNewUser("")
-		onClose()
-	}
+		onAddUser(newUser);
+		setNewUser("");
+		onClose();
+	};
 
 	return (
 		<div className={`fixed inset-0 flex items-center justify-center ${isOpen ? "block" : "hidden"}`}>
@@ -23,5 +23,5 @@ export default function AddUserModal({ isOpen, onClose, onAddUser }) {
 				<button onClick={onClose}>Cancel</button>
 			</div>
 		</div>
-	)
+	);
 }

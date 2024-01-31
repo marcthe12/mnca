@@ -1,42 +1,42 @@
-import { useState } from "react"
-import GroupModal from "./GroupModal.jsx"
-import Modal from "./Modal.jsx"
-import Menu from "./Menu.jsx"
-import { useUser } from "./UserProvider.jsx"
-import PeersConnectedModalContent from "./PeersConnectedModalContent.jsx"
+import { useState } from "react";
+import GroupModal from "./GroupModal.jsx";
+import Modal from "./Modal.jsx";
+import Menu from "./Menu.jsx";
+import { useUser } from "./UserProvider.jsx";
+import PeersConnectedModalContent from "./PeersConnectedModalContent.jsx";
 
 export default function UserMenu({ onGroupCreate }) {
-	const user = useUser()
+	const user = useUser();
 	const [
 		showCreateGroupModal,
 		setShowCreateGroupModal
-	] = useState(false)
-	const [showPeersConnectedModal, setShowPeersConnectedModal] = useState(false)
+	] = useState(false);
+	const [showPeersConnectedModal, setShowPeersConnectedModal] = useState(false);
 
 	function closegroupmodal() {
-		setShowCreateGroupModal(false)
+		setShowCreateGroupModal(false);
 	}
 
 	function closePeersConnectedmodal() {
-		setShowPeersConnectedModal(false)
+		setShowPeersConnectedModal(false);
 	}
 
 	function openPeersConnectedModal() {
-		setShowPeersConnectedModal(true)
+		setShowPeersConnectedModal(true);
 	}
 
 	function opengroupmodal() {
-		setShowCreateGroupModal(true)
+		setShowCreateGroupModal(true);
 	}
 	async function refresh(){
-		 await user.groupMap.refresh()
+		 await user.groupMap.refresh();
 	}
 	async function handleCreateGroup(group) {
 		await onGroupCreate({
 			...group,
 			users: new Set([user.data.body.user])
-		})
-		closegroupmodal()
+		});
+		closegroupmodal();
 	}
 
 	return (
@@ -86,6 +86,6 @@ export default function UserMenu({ onGroupCreate }) {
 				</Menu>
 			</div>
 		</div>
-	)
+	);
 
 }

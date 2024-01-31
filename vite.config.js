@@ -1,5 +1,5 @@
-import { defineConfig, splitVendorChunkPlugin } from "vite"
-import react from "@vitejs/plugin-react"
+import { defineConfig, splitVendorChunkPlugin } from "vite";
+import react from "@vitejs/plugin-react";
 
 export default defineConfig({
 	build: {
@@ -13,4 +13,4 @@ export default defineConfig({
 		react(),
 		splitVendorChunkPlugin()
 	]
-})
+});

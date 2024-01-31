@@ -1,27 +1,27 @@
-import express, { Router } from "express"
-import path from "node:path"
-import fs from "node:fs/promises"
-import wrap from "./wrap.js"
+import express, { Router } from "express";
+import path from "node:path";
+import fs from "node:fs/promises";
+import wrap from "./wrap.js";
 
-const environment = process.env.NODE_ENV
+const environment = process.env.NODE_ENV;
 
 function generateHTML(manifest) {
-	let files = ""
+	let files = "";
 	if (environment === "production") {
-		const manifest_val = Object.values(manifest)
+		const manifest_val = Object.values(manifest);
 		files = manifest_val.map(({ css, file }) => {
-			let out = ""
+			let out = "";
 			if (css) {
-				out += css.map(cssFile => `<link rel="stylesheet" href="${cssFile}">`).join("")
+				out += css.map(cssFile => `<link rel="stylesheet" href="${cssFile}">`).join("");
 			}
-			console.log(file)
+			console.log(file);
 			if (file.endsWith(".js")) {
-				out += `<script type="module" src="${file}"></script>`
+				out += `<script type="module" src="${file}"></script>`;
 			} else if (file.endsWith(".svg")) {
-				out += `<link rel="icon" type="image/svg+xml" href="${file}">`
+				out += `<link rel="icon" type="image/svg+xml" href="${file}">`;
 			}
-			return out
-		}).join("")
+			return out;
+		}).join("");
 	} else {
 		files = `<link rel="icon" type="image/svg+xml" href="/client/assets/icon.svg" />
 		<script type="module" src="http://localhost:5173/@vite/client"></script>
@@ -33,10 +33,10 @@ function generateHTML(manifest) {
 			window.__vite_plugin_react_preamble_installed__ = true;
 		</script>
 		<script type="module" src="http://localhost:5173/client/main.jsx"></script>
-		`
+		`;
 	}
 	return `<!DOCTYPE html><html lang=en><head><meta charset=utf8>
-		<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>MNCA</title>${files}</head></html>`
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>MNCA</title>${files}</head></html>`;
 }
 
 
@@ -49,25 +49,25 @@ function assetExtensionRegex() {
 		"jpeg",
 		"mp4",
 		"ogv"
-	]
-	const formattedExtensionList = supportedAssets.join("|")
-	return new RegExp(`/.+\.(${formattedExtensionList})$`)
+	];
+	const formattedExtensionList = supportedAssets.join("|");
+	return new RegExp(`/.+\.(${formattedExtensionList})$`);
 }
 
 function asset() {
-	const router = Router()
+	const router = Router();
 	router.get(
 		assetExtensionRegex(),
 		(req, res) => {
-			res.redirect(303, `http://localhost:5173/client${req.path}`)
+			res.redirect(303, `http://localhost:5173/client${req.path}`);
 		}
-	)
-	return router
+	);
+	return router;
 }
 
 async function parseManifest() {
 	if (environment !== "production") {
-		return {}
+		return {};
 	}
 
 	const manifestPath = path.join(
@@ -75,29 +75,29 @@ async function parseManifest() {
 		"dist",
 		".vite",
 		"manifest.json"
-	)
-	return await readJsonFile(manifestPath)
+	);
+	return await readJsonFile(manifestPath);
 }
 
 async function readJsonFile(Path) {
-	const file = await fs.readFile(Path, { "encoding": "utf-8" })
-	return JSON.parse(file)
+	const file = await fs.readFile(Path, { "encoding": "utf-8" });
+	return JSON.parse(file);
 }
 
 async function root(_req, res) {
-	const manifest = await parseManifest()
-	res.send(generateHTML(manifest))
+	const manifest = await parseManifest();
+	res.send(generateHTML(manifest));
 }
 
 export default function() {
-	const router = Router()
+	const router = Router();
 	if (process.env.NODE_ENV === "production") {
-		router.use(express.static(path.join(path.resolve(), "dist")))
+		router.use(express.static(path.join(path.resolve(), "dist")));
 	} else {
-		router.use(express.static(path.join(path.resolve(), "public")))
-		router.use("/client", asset())
+		router.use(express.static(path.join(path.resolve(), "public")));
+		router.use("/client", asset());
 	}
 
-	router.get("/", wrap(root))
-	return router
+	router.get("/", wrap(root));
+	return router;
 }

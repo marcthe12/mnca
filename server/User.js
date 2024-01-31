@@ -1,5 +1,5 @@
-import mongoose from "mongoose"
-import crypto from "node:crypto"
+import mongoose from "mongoose";
+import crypto from "node:crypto";
 
 const userSchema = new mongoose.Schema(
 	{
@@ -13,14 +13,14 @@ const userSchema = new mongoose.Schema(
 		"methods": {
 			setPassword (password) {
 
-				this.salt = crypto.randomBytes(16).toString("hex")
+				this.salt = crypto.randomBytes(16).toString("hex");
 				this.password = crypto.pbkdf2Sync(
 					password,
 					this.salt,
 					1000,
 					64,
 					"sha512"
-				).toString("hex")
+				).toString("hex");
 
 			},
 			validPassword (password) {
@@ -31,15 +31,15 @@ const userSchema = new mongoose.Schema(
 					1000,
 					64,
 					"sha512"
-				).toString("hex")
-				return this.password === hash
+				).toString("hex");
+				return this.password === hash;
 
 			}
 		}
 	}
-)
+);
 
 export const User = mongoose.model(
 	"User",
 	userSchema
-)
+);

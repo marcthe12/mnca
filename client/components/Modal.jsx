@@ -1,4 +1,4 @@
-import Hide from "./Hide"
+import Hide from "./Hide";
 
 export default function Modal ({children, show}) {
 
@@ -8,6 +8,6 @@ export default function Modal ({children, show}) {
 				{children}
 			</div>
 		</div>
-	</Hide>
+	</Hide>;
 
 }

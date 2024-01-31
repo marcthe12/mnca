@@ -1,18 +1,18 @@
-import { useEffect } from "react"
-import {useState} from "react"
-import { useUser } from "./UserProvider"
+import { useEffect } from "react";
+import {useState} from "react";
+import { useUser } from "./UserProvider";
 
 export default function PeersConnectedModalContent({ onClose }) {
-	const user = useUser()
-	const [status,setStatus] = useState([])
+	const user = useUser();
+	const [status,setStatus] = useState([]);
 	
 	useEffect(() => {
-		setStatus(user.connect.socketMap.values)
-		user.connect.socketMap.onChange = values => setStatus(values)
+		setStatus(user.connect.socketMap.values);
+		user.connect.socketMap.onChange = values => setStatus(values);
 		return () =>{
-			user.connect.socketMap.onChange = undefined
-		}
-	},[])
+			user.connect.socketMap.onChange = undefined;
+		};
+	},[]);
 
 	return <>
 		<h2 className="text-xl font-semibold mb-4 text-menu-text">Connected Peers</h2>
@@ -41,7 +41,7 @@ export default function PeersConnectedModalContent({ onClose }) {
 			<div className="mt-4 flex justify-end">
 				<button
 					onClick={() => {
-						onClose()
+						onClose();
 					}}
 					className="px-4 py-2 bg-primary-bg text-white rounded-md mr-2"
 				>
@@ -49,6 +49,6 @@ export default function PeersConnectedModalContent({ onClose }) {
 				</button>
 			</div>
 		</div>
-	</>
+	</>;
 
 }

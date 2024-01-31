@@ -1,28 +1,28 @@
-import { useLayoutEffect } from "react"
-import { useRef, useState } from "react"
-import 	PaperClipIcon from "@heroicons/react/24/solid/PaperClipIcon"
+import { useLayoutEffect } from "react";
+import { useRef, useState } from "react";
+import 	PaperClipIcon from "@heroicons/react/24/solid/PaperClipIcon";
 
 export default function SendBox({ onSend }) {
 
-	const [messageContent, setMessageContent] = useState("")
-	const [size, setSize] = useState("auto")
-	const fileInput = useRef(null)
-	const textArea = useRef(null)
+	const [messageContent, setMessageContent] = useState("");
+	const [size, setSize] = useState("auto");
+	const fileInput = useRef(null);
+	const textArea = useRef(null);
 
 	useLayoutEffect(() => {
-		textArea.current.style.height = "auto"
-		textArea.current.style.height = `${Math.min(0.2 * window.innerHeight,textArea.current.scrollHeight)}px`
-	}, [messageContent])
+		textArea.current.style.height = "auto";
+		textArea.current.style.height = `${Math.min(0.2 * window.innerHeight,textArea.current.scrollHeight)}px`;
+	}, [messageContent]);
 
 	async function handleClick() {
-		await onSend(messageContent)
-		setMessageContent("")
+		await onSend(messageContent);
+		setMessageContent("");
 	}
 
 	async function handleUpload(e) {
-		const tar = e.target.files[0]
-		e.target.value = ""
-		await onSend(tar)
+		const tar = e.target.files[0];
+		e.target.value = "";
+		await onSend(tar);
 	}
 
 	return (
@@ -40,6 +40,6 @@ export default function SendBox({ onSend }) {
 			</button>
 			<button className="rounded-full bg-secondary-bg p-1 grid-cols-3" onClick={handleClick}>send</button>
 		</div >
-	)
+	);
 
 }

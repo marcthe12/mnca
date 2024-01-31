@@ -1,22 +1,22 @@
-import { useState } from "react"
-import { useUser } from "./UserProvider.jsx"
+import { useState } from "react";
+import { useUser } from "./UserProvider.jsx";
 
 export default function LoginForm() {
-	const user = useUser()
-	const [username, setUsername] = useState("")
-	const [password, setPassword] = useState("")
+	const user = useUser();
+	const [username, setUsername] = useState("");
+	const [password, setPassword] = useState("");
 
 	async function handleSubmit(e) {
-		e.preventDefault()
-		await user.signIn(username, password)
+		e.preventDefault();
+		await user.signIn(username, password);
 	}
 
 	function handleUsernameChange(e) {
-		setUsername(e.target.value)
+		setUsername(e.target.value);
 	}
 
 	function handlePasswordChange(e) {
-		setPassword(e.target.value)
+		setPassword(e.target.value);
 	}
 
 	return (
@@ -69,5 +69,5 @@ export default function LoginForm() {
 				</form>
 			</div>
 		</div>
-	)
+	);
 }

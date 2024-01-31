@@ -1,4 +1,4 @@
-import icon from "../assets/icon.svg"
+import icon from "../assets/icon.svg";
 
 export default function Header () {
 
@@ -9,6 +9,6 @@ export default function Header () {
 			</div>
 			<h3 className="dark:text-header-text">MNCA</h3>
 		</header>
-	)
+	);
 
 }

@@ -1,34 +1,34 @@
-import {createContext, useContext, useEffect, useState, useRef} from "react"
-import { UserAuth } from "../UserAuth"
+import {createContext, useContext, useEffect, useState, useRef} from "react";
+import { UserAuth } from "../UserAuth";
 
-const UserContex = createContext(null)
+const UserContex = createContext(null);
 
 export function useUser () {
-	return useContext(UserContex)?.user
+	return useContext(UserContex)?.user;
 }
 
-const god = new UserAuth()
+const god = new UserAuth();
 
 export function UserContext ({children}) {
 
 	const [
 		token,
 		setToken
-	] = useState()
+	] = useState();
 
-	const user = useRef(null)
+	const user = useRef(null);
 
 	useEffect(
 		() => {
-			user.current = god
-			setToken(user.current.token)
+			user.current = god;
+			setToken(user.current.token);
 			user.current.onSignin = token => {
-				setToken(token)
-			}
-			user.current.onSignOut = () => {setToken()}
+				setToken(token);
+			};
+			user.current.onSignOut = () => {setToken();};
 		},[]
-	)
+	);
 
-	return <UserContex.Provider value={{user:user.current,token}}>{children}</UserContex.Provider>
+	return <UserContex.Provider value={{user:user.current,token}}>{children}</UserContex.Provider>;
 
 }

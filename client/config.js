@@ -1,4 +1,4 @@
-import api from "./api.js"
+import api from "./api.js";
 
-export const  config = await api("/config")()
-export default config
+export const  config = await api("/config")();
+export default config;
