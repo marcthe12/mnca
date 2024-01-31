@@ -234,7 +234,7 @@ export default class Group {
 	}
 	async removeUser(user) {
 		const state = await this.getState();
-		const uuids = [...state.users].filter(([key, val]) => val === user).map(([key, val]) => key);
+		const uuids = [...state.users].filter(([, value]) => value === user).map(([key]) => key);
 		await this.event("removeUser", { uuids });
 	}
 	async addUser(user) {
@@ -245,7 +245,7 @@ export default class Group {
 	}
 	async removeMessage(messageId) {
 		const state = await this.getState();
-		const uuids = [...state.messages].filter(([key, val]) => val.messageId === messageId).map(([key, val]) => key);
+		const uuids = [...state.messages].filter(([, value]) => value.messageId === messageId).map(([key]) => key);
 		await this.event("removeMessage", { uuids });
 	}
 }

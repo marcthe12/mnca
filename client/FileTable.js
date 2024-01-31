@@ -38,7 +38,7 @@ export default class FileTable {
 	async verify(hash, value) {
 		return hash === await this.hash(value);
 	}
-	async requestFile(hash, users, onDone = async _ => { }) {
+	async requestFile(hash, users, onDone = async () => { }) {
 		const ref = crypto.randomUUID();
 		this.userAuth.connect.socketMap.registerCallAll(async (data, unsubscribe) => {
 			const ref = crypto.randomUUID();

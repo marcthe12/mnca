@@ -5,7 +5,6 @@ import 	PaperClipIcon from "@heroicons/react/24/solid/PaperClipIcon";
 export default function SendBox({ onSend }) {
 
 	const [messageContent, setMessageContent] = useState("");
-	const [size, setSize] = useState("auto");
 	const fileInput = useRef(null);
 	const textArea = useRef(null);
 

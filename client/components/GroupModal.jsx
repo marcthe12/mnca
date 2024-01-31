@@ -1,15 +1,13 @@
-import {useState} from "react";
-import { useUser } from "./UserProvider";
+import { useState } from "react";
 
-export default function GroupModal ({onCreate, onClose}) {
-	const user = useUser();
+export default function GroupModal({ onCreate, onClose }) {
 	const [name, setName] = useState("");
-	const [id, setID]  = useState(crypto.randomUUID());
+	const [id, setID] = useState(crypto.randomUUID());
 	return <>
 		<h2 className="text-xl font-semibold mb-4 text-menu-text">Create a New Group</h2>
 		<div className="mb-4 ">
 			<label className="block font-medium mb-1 text-menu-text">
-        Group Name
+				Group Name
 				<input
 					type="text"
 					className="w-full border rounded-md p-2"
@@ -19,7 +17,7 @@ export default function GroupModal ({onCreate, onClose}) {
 				></input>
 			</label>
 			<label className="block font-medium mb-1 text-menu-text">
-        Group ID
+				Group ID
 				<input
 					type="text"
 					className="w-full border rounded-md p-2"
@@ -35,16 +33,16 @@ export default function GroupModal ({onCreate, onClose}) {
 					}}
 					className="px-4 py-2 bg-primary-bg rounded-md mr-2"
 				>
-          Cancel
+					Cancel
 				</button>
 				<button
 					onClick={() => {
-						onCreate({name, groupId: id});
+						onCreate({ name, groupId: id });
 						onClose();
 					}}
 					className="px-4 py-2 bg-secondary-bg text-secondary-text rounded-md"
 				>
-          Create
+					Create
 				</button>
 			</div>
 		</div>

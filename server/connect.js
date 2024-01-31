@@ -1,5 +1,6 @@
 import { WebSocketServer } from "ws";
 import Token from "./Token.js";
+import crypto from "node:crypto";
 
 class SocketMap {
 	constructor() {
@@ -61,9 +62,9 @@ function broadcastToUser(user, id, action, data = {}) {
 }
 
 function sendAck(ws, data, timeout, ackid = crypto.randomUUID(),) {
-	return new Promise((resolve, _reject) => {
+	return new Promise((resolve) => {
 		const timer = setTimeout(() => {
-			unsubscribe();
+			delete var1[ackid];
 			resolve(false);
 		}, timeout);
 		var1[ackid] = (_msg, unsubscribe) => {
@@ -96,7 +97,7 @@ export default function(server) {
 		const searchParams = new URL(req.url, `ws://${req.headers.host}`).searchParams;
 		const token = searchParams.get("token");
 		const id = searchParams.get("id");
-		var tken; 
+		var tken;
 		try {
 			tken = await Token.verify(token); //token verification
 		} catch (err) {

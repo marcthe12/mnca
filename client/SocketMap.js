@@ -187,29 +187,10 @@ export default class SocketMap {
 		}
 	}
 	clear() {
-		this.mapping.forEach((val, key) => this.delete(key));
+		this.mapping.forEach((_val, key) => this.delete(key));
 	}
 
 	get values() {
 		return Array.from(this.mapping.values());
-	}
-	async compressString(str) {
-		const encoder = new TextEncoder();
-		const data = encoder.encode(str);
-
-		const compressedData = await new Response(data).body.pipeThrough(new CompressionStream("gzip"));
-		const reader = compressedData.getReader();
-
-		let compressedChunks = [];
-		while (true) {
-			const { done, value } = await reader.read();
-			if (done) {
-				break;
-			}
-			compressedChunks.push(value);
-		}
-
-		// Concatenate all compressed chunks into a single Uint8Array
-		return new Uint8Array(await new Blob(compressedChunks).arrayBuffer());
 	}
 }

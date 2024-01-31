@@ -96,7 +96,7 @@ export class UserAuth {
 	async handleRecieve(data) {
 		if (data.file) {
 			switch (data.action) {
-			case "request":
+			case "request":{
 				this.connect.socketMap.send({
 					ref: data.replyId,
 					id: this.clientID,
@@ -104,10 +104,11 @@ export class UserAuth {
 					hash: data.hash
 				}, data.id);
 				break;
-			case "retrive":
+			}
+			case "retrive": {
 				let file = await this.filetable.get(data.hash);
 				if (file instanceof File) {
-					file = await blobToBase64(file		);
+					file = await blobToBase64(file);
 				}
 				this.connect.socketMap.send({
 					ref: data.replyId,
@@ -116,6 +117,7 @@ export class UserAuth {
 					file
 				}, data.id);
 				break;
+			}
 			}
 
 			return;

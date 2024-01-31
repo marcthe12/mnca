@@ -132,12 +132,12 @@ export default class GroupMap {
 			}
 			return acc;
 		}, new Map());
-		await Promise.all([...this.map].filter(([k, v]) => !gState.has(k)).map(([k, v]) => v.delete()));
-		await Promise.all([...gState].filter(([k, v]) => !this.map.has(k)).map(async ([k, v]) => {
-			const group = new Group(this.userAuth, k);
-			this.map.set(k, group);
-			await this.db.add("groupUserHint", v.users, k);
-			await group.initialize(v.users);//temporary knowledge
+		await Promise.all([...this.map].filter(([key]) => !gState.has(key)).map(([, value]) => value.delete()));
+		await Promise.all([...gState].filter(([key]) => !this.map.has(key)).map(async ([key, value]) => {
+			const group = new Group(this.userAuth, key);
+			this.map.set(key, group);
+			await this.db.add("groupUserHint", value.users, key);
+			await group.initialize(value.users);//temporary knowledge
 			//1. until groupInitialize is considered successful, operation has to keep retying..with a condition
 
 			// loosing info...
@@ -157,7 +157,7 @@ export default class GroupMap {
 
 	async getValue() {
 		const groupIds = new Set((await this.getState()).values());
-		const group = await Promise.all([...groupIds].map(async (k, v) => await this.map?.get(k)?.getValue()));
+		const group = await Promise.all([...groupIds].map(async (key,) => await this.map?.get(key)?.getValue()));
 		return group.filter(v => v !== undefined);
 	}
 	async onOnline(user, id) {
@@ -187,7 +187,7 @@ export default class GroupMap {
 	}
 	async leaveGroup(id) {
 		const state = await this.getState();
-		const uuids = [...state].filter(([key, val]) => val === id).map(([key, val]) => key);
+		const uuids = [...state].filter(([, val]) => val === id).map(([key]) => key);
 		await this.event("leave", { uuids });
 	}
 	async rename(id, name) {

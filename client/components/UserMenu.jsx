@@ -28,8 +28,8 @@ export default function UserMenu({ onGroupCreate }) {
 	function opengroupmodal() {
 		setShowCreateGroupModal(true);
 	}
-	async function refresh(){
-		 await user.groupMap.refresh();
+	async function refresh() {
+		await user.groupMap.refresh();
 	}
 	async function handleCreateGroup(group) {
 		await onGroupCreate({

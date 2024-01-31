@@ -90,12 +90,6 @@ export default class SocketInit {
 				const conn = this.createPeer(message.src, message.user);
 				const channel = conn.rtc.createDataChannel(message.client);
 				conn.setupDataChannel(channel);
-				await conn.sendSignal({ action: "setup" });
-				break;
-			}
-			case "setup": {
-				const conn = this.socketMap.get(message.src);
-				//conn.rtc.createDataChannel(message.client);
 				break;
 			}
 			case "offer": {

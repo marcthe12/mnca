@@ -51,7 +51,7 @@ function assetExtensionRegex() {
 		"ogv"
 	];
 	const formattedExtensionList = supportedAssets.join("|");
-	return new RegExp(`/.+\.(${formattedExtensionList})$`);
+	return new RegExp(`/.+\\.(${formattedExtensionList})$`);
 }
 
 function asset() {
