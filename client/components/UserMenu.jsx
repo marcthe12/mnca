@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import GroupModal from "./GroupModal.jsx";
 import Modal from "./Modal.jsx";
 import Menu from "./Menu.jsx";
@@ -12,18 +12,7 @@ export default function UserMenu({ onGroupCreate }) {
 		setShowCreateGroupModal
 	] = useState(false);
 	const [showPeersConnectedModal, setShowPeersConnectedModal] = useState(false);
-	const [status, setStatus] = useState('offline'); // Initialize status as 'offline'
-	//when the status changes
-    useEffect(() => {
-		user.connect.onChange = values => setStatus(values);
-		//try to reconnect:>open and closeis basically , instead of checking everytime, use open or close
-		//if it matches  the current offline online logic...
-		user.connect.handleChange()
-		return () =>{
-			user.connect.onChange = undefined;
-		};
-    }, []); 
-	
+
 	function closegroupmodal() {
 		setShowCreateGroupModal(false);
 	}
@@ -48,16 +37,16 @@ export default function UserMenu({ onGroupCreate }) {
 			users: new Set([user.data.body.user])
 		});
 		closegroupmodal();
-	}//<p className={`text-${isOnline ? 'lime-50' : 'red-500'}`}>{isOnline ? 'Online' : 'Offline'}</p>
+	}
+
 	return (
 		<div className="flex items-center justify-between px-4 py-2 bg-secondary-bg shadow-md">
 			<div className="flex items-center space-x-4">
 				<div>
 					<p className="font-semibold">{user.data.body.user}</p>
-					<p className="font-semibold">{status}</p>
+					<p className="text-lime-50">Online</p>
 				</div>
 			</div>
-			
 			<div className="relative inline-block text-left">
 				<Menu>
 					<button
