@@ -72,6 +72,7 @@ export default class SocketMap {
 			onRecieve: (...args) => this.handleRecieve(...args),
 			onConnect: (...args) => this.handleConnect(...args),
 			setupDataChannel(channel) {
+				let receivedChunks = new Map(); //added---here
 				channel.addEventListener("open", async () => {
 					this.channel = channel;
 					await this.onConnect(this.user, this.id);
@@ -80,19 +81,48 @@ export default class SocketMap {
 				channel.addEventListener("message", async (event) => {
 					const message = JSON.parse(event.data);
 					console.log(message);
-					if (message.ref && this.callbackMap.has(message.ref)) {
-						this.callbackMap.get(message.ref)(
-							message,
-							() => this.callbackMap.delete(message.ref)
-						);
-						return;
+					if (message.chunkId !== undefined && message.totalChunks !== undefined) {
+						// This is a chunked message
+						if (!receivedChunks.has(message.id)) {
+							receivedChunks.set(message.id, Array(message.totalChunks).fill(null));
+						}
+						receivedChunks.get(message.id)[message.chunkId] = message.data;
+			
+						// Check if all chunks have been received
+						if (receivedChunks.get(message.id).every(chunk => chunk !== null)) {
+							const originalMessage = receivedChunks.get(message.id).join('');
+							delete receivedChunks.delete(message.id);
+							await this.onRecieve(JSON.parse(originalMessage));
+						}
+					} else {
+						// Regular message
+						if (message.ref && this.callbackMap.has(message.ref)) {
+							this.callbackMap.get(message.ref)(
+								message,
+								() => this.callbackMap.delete(message.ref)
+							);
+						} else {
+							await this.onRecieve(message);
+						}
 					}
-					await this.onRecieve(message);
 				});
+				// 	if (message.ref && this.callbackMap.has(message.ref)) {
+				// 		this.callbackMap.get(message.ref)(
+				// 			message,
+				// 			() => this.callbackMap.delete(message.ref)
+				// 		);
+				// 		return;
+				// 	}
+				// 	await this.onRecieve(message);
+				// }),
 			},
-			async send(data) {
+			async sendChunk(chunkId,data) {
 				try {
-					const msg = JSON.stringify(data);
+					const chunkData = {
+						chunkId: chunkId,
+						data: data
+					};
+					const msg = JSON.stringify(chunkData);
 					await new Promise((resolve) => {
 						const checkValue = () => {
 							if (this.channel !== undefined) {
@@ -108,6 +138,21 @@ export default class SocketMap {
 					console.error(e);
 				}
 
+			},
+			async send(data) {
+				try {
+					const chunkSize = 1024; // Define your chunk size
+					const totalChunks = Math.ceil(data.length / chunkSize);
+					for (let i = 0; i < totalChunks; i++) {
+						const chunkId = i;
+						const start = i * chunkSize;
+						const end = (i + 1) * chunkSize;
+						const chunkData = data.slice(start, end);
+						await this.sendChunk(chunkId, chunkData);
+					}
+				} catch (e) {
+					console.error(e);
+				}
 			}
 		};
 		this.mapping.set(recv, conn);
@@ -128,6 +173,7 @@ export default class SocketMap {
 				makingOffer = false;
 			}
 		});
+//output to signify and input to parse
 
 		conn.rtc.addEventListener("icecandidate", async function ({ candidate }) {
 			if (candidate !== null) {
