@@ -194,20 +194,19 @@ export default class Group {
 				break;
 			}
 		}
+		//message.message is the hash
 		await this.db.put("groupState", group);
 		const newvar = await this.getValue();
 		const newMessages = [...newvar.messages].filter(newMessage => ![...old.messages].some(oldMessage => newMessage.messageId === oldMessage.messageId));
 		const removedMessages = [...old.messages].filter(oldMessage => ![...newvar.messages].some(newMessage => newMessage.messageId === oldMessage.messageId));
-		const newMessageHashes = newMessages.map(message => message.message);
-		const removedMessageHashes = removedMessages.map(message => message.message);
 		const newUsers = [...newvar.users].filter(user => !old.users.has(user));
 		const removedUsers = [...old.users].filter(user => !newvar.users.has(user));
-		for (const hash of removedMessageHashes) {
-			await this.userAuth.filetable.delete(hash);
+		for (const message of removedMessages) {
+			await this.userAuth.filetable.delete(message.message,message.messageId);
 		}
-		for (const hash of newMessageHashes) {
-			if (!await this.userAuth.filetable.inc(hash)) {
-				//				await this.userAuth.filetable.requestFile(hash, newvar.users, file => console.log(file))
+		for (const message of newMessages) {
+			if (!await this.userAuth.filetable.inc(message.message,message.messageId)) {
+				//await this.userAuth.filetable.requestFile(hash, newvar.users, file => console.log(file))
 			}
 		}
 

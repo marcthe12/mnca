@@ -159,14 +159,15 @@ export class UserAuth {
 	}
 
 	async addNewMessage(group, message, parentId) {
-		const digest = await this.filetable.add(message);
+		const id = crypto.randomUUID()
+		const digest = await this.filetable.add(message,id);
 		const msg = {
 			name: this.data.body.user,
 			message: digest,
 			date: new Date(),
 			groupId: group.groupId,
 			parentId,
-			messageId: crypto.randomUUID()
+			messageId: id
 		};
 		await this.groupMap.addMessage(msg.groupId, msg);
 	}

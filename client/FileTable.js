@@ -38,7 +38,11 @@ export default class FileTable {
 	async verify(hash, value) {
 		return hash === await this.hash(value);
 	}
-	async requestFile(hash, users, onDone = async () => { }) {
+	//dump the ids in all the place,
+	//undefined not :
+	//write code 
+	
+	async requestFile(hash, users,messageId, onDone = async () => { }) {
 		const ref = crypto.randomUUID();
 		this.userAuth.connect.socketMap.registerCallAll(async (data, unsubscribe) => {
 			const ref = crypto.randomUUID();
@@ -49,8 +53,8 @@ export default class FileTable {
 						data.file = await Base64ToBlob(data.file);
 					}
 					if (await this.verify(data.hash, data.file)) {
-						await this.add(data.file);
-						await this.inc(data.hash);
+						await this.add(data.file,messageId);
+						await this.inc(data.hash,messageId);
 						await onDone(data.file);
 					}
 				}, ref);
@@ -76,16 +80,17 @@ export default class FileTable {
 		return (await this.db.get("files", hash))?.value;
 	}
 
-	async add(value) {
+	async add(value, id) {
 		const key = await this.hash(value);
-		const data = await this.db.get("files", key) ?? { value, count: 0 };
+		const data = await this.db.get("files", key) ?? { value, count: 0, ref: new Set([id])};
 		await this.db.put("files", data, key);
 		return key;
 	}
-	async inc(hash) {
+	async inc(hash, id) {
 		const data = await this.db.get("files", hash);
-		if (isDefined(data)) {
+		if (isDefined(data)) { 
 			data.count += 1;
+			data.ref.add(id);
 			await this.db.put("files", data, hash);
 			return true;
 		}
@@ -95,14 +100,15 @@ export default class FileTable {
 		const data = await this.db.get("files", hash);
 		return isDefined(data) && data.count > 0;
 	}
-	async delete(hash) {
+	async delete(hash, id) {
 		const data = await this.db.get("files", hash);
 		if (!isDefined(data)) {
 			return; //false
 		}
 		data.count -= 1;
-		if (data.count <= 0) {
-			await this.db.delete("files", hash);//false
+		data.ref.delete(id);
+		if (data.ref.size <= 0) {// data.ref.size is equivaent to data.count in this case
+			await this.db.delete("files", hash);
 		} else {
 			await this.db.put("files", data, hash);//true
 		}

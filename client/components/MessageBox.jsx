@@ -14,7 +14,7 @@ export default function MessageBox({ message, onThread, onDelete, recpt }) {
 				const res = await user.filetable.get(msg);
 				setData(res);
 				if (!isDefined(res)) {
-					await user.filetable.requestFile(msg, recpt, file => setData(file));
+					await user.filetable.requestFile(msg, recpt,id, file => setData(file));
 				}
 			})();
 		},
