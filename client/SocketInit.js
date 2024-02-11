@@ -3,6 +3,7 @@ import config from "./config.js";
 export default class SocketInit {
 	constructor(userAuth) {
 		this.getuserauth = userAuth;
+		console.log(userAuth)
 		this.socketMap = new SocketMap(this);
 		const url = new URL(config.websocket);
 		if (userAuth.token) {
@@ -10,9 +11,9 @@ export default class SocketInit {
 			url.searchParams.set("id", this.id);
 		}
 		const result = new WebSocket(url);
-		result.addEventListener("open", async () => {
+		result.addEventListener("open",() => {
 			this.result = result;
-			this.result.addEventListener("message", async ({ data }) => {
+			this.result.addEventListener("message",({ data }) => {
 				this.handleMessage(data);
 			});
 		});
