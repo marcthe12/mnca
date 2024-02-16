@@ -12,12 +12,16 @@ export default function RegistrationForm() {
 	async function handleSubmit(e) {
 		e.preventDefault();
 
-		await registerRequest({
+		const data = await registerRequest({
 			username,
 			password,
 		});
-
-		await user.signIn(username, password);
+		if(data && data.status === false){
+			alert("Username already exists, try login!")
+		} else {
+			await user.signIn(username, password);
+		}
+		
 	}
 
 	function handleUsernameChange(e) {

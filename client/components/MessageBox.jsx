@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useUser } from "./UserProvider.jsx";
 import { isDefined } from "../utils.js";
 
+
 export default function MessageBox({ message, onThread, onDelete, recpt }) {
 	const user = useUser();
 	const { messageId: id, name, "message": msg, date } = message;
@@ -28,7 +29,7 @@ export default function MessageBox({ message, onThread, onDelete, recpt }) {
 	async function copy() {
 		await navigator.clipboard.writeText(data);
 	}
-
+	
 	async function download() {
 		const blob = data instanceof File ? data : new File([data], id, { type: "text/plain", lastModified: date });
 		const link = document.createElement("a");
@@ -40,8 +41,8 @@ export default function MessageBox({ message, onThread, onDelete, recpt }) {
 		document.body.removeChild(link);
 		URL.revokeObjectURL(blobUrl);
 	}
-	const isCurrentUser = user && user.name === name;
-	return <section className={`max-w-sm rounded overflow-hidden shadow-lg bg-secondary-bg text-secondary-text m-5 p-4 ${isCurrentUser ? "ml-auto" : "mr-auto"
+	const current_user = name === user.data.body.user;
+	return <section className={`max-w-sm rounded overflow-hidden shadow-lg bg-secondary-bg text-secondary-text m-5 p-4 ${current_user ? "ml-auto" : "mr-auto"
 	}`} onClick={() => handleClick()}>
 		<Hide show={menu}>
 			<div className="relative w-full mt-2 w-48 rounded-md shadow-lg bg-menu-bg ring-1 ring-black ring-opacity-5">

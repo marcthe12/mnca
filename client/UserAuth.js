@@ -186,7 +186,9 @@ export class UserAuth {
 			username,
 			password
 		});
+		console.log(data)
 		await this.setToken(data.token);
+		return data;
 	}
 
 	async signOut() {

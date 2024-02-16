@@ -8,7 +8,10 @@ export default function LoginForm() {
 
 	async function handleSubmit(e) {
 		e.preventDefault();
-		await user.signIn(username, password);
+		const data = await user.signIn(username, password);
+		if(data && data.status === false){
+			alert("Invalid Username or password")
+		}
 	}
 
 	function handleUsernameChange(e) {

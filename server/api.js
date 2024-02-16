@@ -6,12 +6,20 @@ import wrap from "./wrap.js";
 
 async function register(req, res) {
 	const { username, password } = req.body;
-	const newUser = new User({ username });
-	newUser.setPassword(password);
-	await newUser.save();
-	res.status(200).json({ message: "User registered successfully." });
+	try {
+		const existingUser = await User.findOne({ username });
+		if (existingUser) {
+			return res.status(409).json({ message: "User already exists." , status: false});
+		}
+		const newUser = new User({ username });
+		newUser.setPassword(password);
+		await newUser.save();
+		res.status(200).json({ message: "User registered successfully." , status: true});
+	} catch (error) {
+		res.status(500).json({ message: "Internal Server Error" , status: false});
+	}
 }
-
+//409 err for reg fn
 async function client_config(_req, res) {
 	return res.status(200).json({
 		websocket: config.websocket,
@@ -27,15 +35,20 @@ async function login(req, res) {
 			const token = await Token.sign({ "user": username });
 			return res.status(200).json({
 				message: "Login Sucessful",
+				status: true,
 				token,
 				username
 			});
 		}
 		return res.status(401).send({
-			message: "Wrong Password"
+			message: "Wrong Password",
+			status: false
 		});
 	}
-	res.status(401).send({ message: "Invalid username" });
+	res.status(401).send({
+		message: "Invalid username",
+		status: false
+	});
 }
 
 async function searchUser(req, res) {
@@ -48,7 +61,7 @@ async function searchUser(req, res) {
 	try {
 		await Token.verify(token);
 	} catch (err) {
-		return res.status(403).send({message: "Invalid User"});
+		return res.status(403).send({ message: "Invalid User" });
 	}
 
 	const { username } = req.body;
@@ -63,7 +76,7 @@ async function searchUser(req, res) {
 	});
 }
 
-export default function() {
+export default function () {
 	const route = Router();
 	route.post(
 		"/register",
