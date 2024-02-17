@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import GroupModal from "./GroupModal.jsx";
 import Modal from "./Modal.jsx";
 import Menu from "./Menu.jsx";
@@ -12,7 +12,19 @@ export default function UserMenu({ onGroupCreate }) {
 		setShowCreateGroupModal
 	] = useState(false);
 	const [showPeersConnectedModal, setShowPeersConnectedModal] = useState(false);
-
+	const [status, setStatus] = useState('offline'); // Initialize status as 'offline'
+	//when the status changes
+	useEffect(() => {
+		if (user.connect) {
+			user.connect.onChange = values => setStatus(values);
+		}
+		//try to reconnect:>open and closeis basically , instead of checking everytime, use open or close
+		//if it matches  the current offline online logic...
+		user.connect.handleChange() ?? []
+		return () => {
+			user.connect.onChange = undefined;
+		};
+	}, []);
 	function closegroupmodal() {
 		setShowCreateGroupModal(false);
 	}
@@ -44,7 +56,7 @@ export default function UserMenu({ onGroupCreate }) {
 			<div className="flex items-center space-x-4">
 				<div>
 					<p className="font-semibold">{user.data.body.user}</p>
-					<p className="text-lime-50">Online</p>
+					<p className="text-lime-50">{status}</p>
 				</div>
 			</div>
 			<div className="relative inline-block text-left">
