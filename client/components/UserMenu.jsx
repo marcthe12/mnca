@@ -4,6 +4,7 @@ import Modal from "./Modal.jsx";
 import Menu from "./Menu.jsx";
 import { useUser } from "./UserProvider.jsx";
 import PeersConnectedModalContent from "./PeersConnectedModalContent.jsx";
+import isDefined from "../isDefined.js";
 
 export default function UserMenu({ onGroupCreate }) {
 	const user = useUser();
@@ -12,17 +13,17 @@ export default function UserMenu({ onGroupCreate }) {
 		setShowCreateGroupModal
 	] = useState(false);
 	const [showPeersConnectedModal, setShowPeersConnectedModal] = useState(false);
-	const [status, setStatus] = useState('offline'); // Initialize status as 'offline'
+	const [status, setStatus] = useState("offline"); // Initialize status as 'offline'
 	//when the status changes
 	useEffect(() => {
-		if (user.connect) {
+		if (isDefined(user?.connect)) {
 			user.connect.onChange = values => setStatus(values);
+			user.connect.handleChange() ?? []
 		}
-		//try to reconnect:>open and closeis basically , instead of checking everytime, use open or close
-		//if it matches  the current offline online logic...
-		user.connect.handleChange() ?? []
 		return () => {
-			user.connect.onChange = undefined;
+			if(isDefined(user?.connect)){
+				user.connect.onChange = undefined;
+			}
 		};
 	}, []);
 	function closegroupmodal() {

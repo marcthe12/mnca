@@ -14,7 +14,6 @@ function generateHTML(manifest) {
 			if (css) {
 				out += css.map(cssFile => `<link rel="stylesheet" href="${cssFile}">`).join("");
 			}
-			console.log(file);
 			if (file.endsWith(".js")) {
 				out += `<script type="module" src="${file}"></script>`;
 			} else if (file.endsWith(".svg")) {

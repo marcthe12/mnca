@@ -110,7 +110,6 @@ export default function(server) {
 		const socket = { user, ws, id };
 		userSessions.add(socket);
 
-		console.log(user);
 		const subList = new SubscribeSocket(
 			userSessions,
 			recv => broadcastToUser(recv, socket.id, "subscribe", { user }),

@@ -21,7 +21,11 @@ export default function SendBox({ onSend }) {
 	async function handleUpload(e) {
 		const tar = e.target.files[0];
 		e.target.value = "";
-		await onSend(tar);
+		if(tar.size < 24 * 1024 *1024){
+			await onSend(tar);
+		} else {
+			alert("File limit is 24 MiB");
+		}
 	}
 
 	return (

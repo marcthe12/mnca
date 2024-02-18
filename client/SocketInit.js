@@ -8,7 +8,7 @@ export default class SocketInit {
 		this.interval = setInterval(() => {
 			this.handleChange()
 		}, 1000); // Check status every second (adjust as needed)
-		
+
 		this.reconnectionAttempts = 0;
 		this.maxReconnectionAttempts = 10;
 	}
@@ -20,18 +20,26 @@ export default class SocketInit {
 		}
 		const result = new WebSocket(url);
 		result.addEventListener("open", () => {
+			this.reconnectionAttempts = 0
 			this.result = result;
 			this.result.addEventListener("message", ({ data }) => {
 				this.handleMessage(data);
 			});
 		});
 		result.addEventListener("close", () => {
-			console.log("Connection closed, retrying...");
 			this.reconnect();
 		});
+
+		if (this.reconnectionAttempts === 0) {
+			setTimeout(() => {
+				if (this.checkStatus() === "offline") {
+					this.reconnect();
+				}
+			}, 10 * 1000);
+		}
 	}
-	checkStatus() {//what point to display offline
-		return this.result?.readyState === WebSocket.OPEN ? 'Online' : 'offline';//---added here       
+	checkStatus() {
+		return this.result?.readyState === WebSocket.OPEN ? "Online" : "Offline";//---added here       
 	}
 	handleChange() {
 		this.onChange?.(this.checkStatus());
@@ -45,7 +53,7 @@ export default class SocketInit {
 			}, delay);
 			this.reconnectionAttempts++;
 		} else {
-			console.log("Maximum reconnection attempts reached. Please refresh the page.");
+			alert("Maximum reconnection attempts reached. Please refresh the page.");
 		}
 	}
 	get id() {
@@ -83,58 +91,58 @@ export default class SocketInit {
 		const message = JSON.parse(data);
 
 		switch (message.type) {
-			case "normal": {
-				switch (message.action) {
-					case "subscribe": {
-						const conn = this.createPeer(message.client, message.user, false);
-						await conn.sendSignal({ action: "ack", user: this.getuserauth.data.body.user });
-						break;
-					}
-					case "unsubscribe": {
-						if (this.socketMap.has(message.client)) {
-							this.socketMap.delete(message.client);
-						}
-						break;
-					}
-					case "join": {
-						await this.send("", { ref: message.ackid });
-						this.getuserauth.addGroup({
-							groupId: message.group.groupId,
-							users: new Set(message.group.users),
-							messages: [],
-							name: ""
-						});
-						break;
-					}
-					case "leave": {
-						await this.send("", { ref: message.ackid });
-						this.getuserauth.deleteGroup(message.groupId);
-						break;
-					}
+		case "normal": {
+			switch (message.action) {
+			case "subscribe": {
+				const conn = this.createPeer(message.client, message.user, false);
+				await conn.sendSignal({ action: "ack", user: this.getuserauth.data.body.user });
+				break;
+			}
+			case "unsubscribe": {
+				if (this.socketMap.has(message.client)) {
+					this.socketMap.delete(message.client);
 				}
 				break;
 			}
-			case "proxy": {
-				switch (message.action) {
-					case "ack": {//recheck for bug
-						const conn = this.createPeer(message.src, message.user);
-						const channel = conn.rtc.createDataChannel(message.client);
-						conn.setupDataChannel(channel);
-						break;
-					}
-					case "offer": {
-						const conn = this.socketMap.get(message.src);
-						await conn.onOffer(message.offer);
-						break;
-					}
-					case "icecandidate": {
-						const conn = this.socketMap.get(message.src);
-						await conn.onIceCandidate(message.candidate);
-						break;
-					}
-				}
+			case "join": {
+				await this.send("", { ref: message.ackid });
+				this.getuserauth.addGroup({
+					groupId: message.group.groupId,
+					users: new Set(message.group.users),
+					messages: [],
+					name: ""
+				});
 				break;
 			}
+			case "leave": {
+				await this.send("", { ref: message.ackid });
+				this.getuserauth.deleteGroup(message.groupId);
+				break;
+			}
+			}
+			break;
+		}
+		case "proxy": {
+			switch (message.action) {
+			case "ack": {//recheck for bug
+				const conn = this.createPeer(message.src, message.user);
+				const channel = conn.rtc.createDataChannel(message.client);
+				conn.setupDataChannel(channel);
+				break;
+			}
+			case "offer": {
+				const conn = this.socketMap.get(message.src);
+				await conn.onOffer(message.offer);
+				break;
+			}
+			case "icecandidate": {
+				const conn = this.socketMap.get(message.src);
+				await conn.onIceCandidate(message.candidate);
+				break;
+			}
+			}
+			break;
+		}
 		}
 	}
 

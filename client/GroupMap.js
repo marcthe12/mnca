@@ -1,6 +1,6 @@
 import VectorClock from "./VectorClock";
 import Group from "./Group.js";
-import { waitUntilMapValue } from "./utils.js";
+import waitUntilMapValue from "./waitUntilMapValue.js";
 
 export default class GroupMap {
 	constructor(userAuth) {
@@ -54,7 +54,6 @@ export default class GroupMap {
 		}, this.userAuth.data.body.user);
 	}
 	async pull({ id, groupId, version, events }) {
-		console.log({ id, groupId, version, events});
 		version = new VectorClock(version);
 		events = events?.map(event => {
 			event.version = new VectorClock(event.version);

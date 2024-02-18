@@ -4,7 +4,7 @@ import { blobToBase64 } from "./Blob64.js";
 import FileTable from "./FileTable.js";
 import GroupMap from "./GroupMap.js";
 import SocketInit from "./SocketInit";
-import { JWTdecode } from "./utils.js";
+import JWTDecode from "./JWTDecode.js";
 
 export class UserAuth {
 	constructor() {
@@ -48,7 +48,7 @@ export class UserAuth {
 	}
 
 	get data() {
-		return this.token ? JWTdecode(this.token) : null;
+		return this.token ? JWTDecode(this.token) : null;
 	}
 	async dbconnect() {
 		this.db = this.token ? await openDB(this.data.body.user, 6,
@@ -186,7 +186,6 @@ export class UserAuth {
 			username,
 			password
 		});
-		console.log(data)
 		await this.setToken(data.token);
 		return data;
 	}

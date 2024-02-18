@@ -1,17 +1,6 @@
 import VectorClock from "./VectorClock.js";
-import { isDefined } from "./utils.js";
-
-function notifyUserChange(msg) {
-	if ("Notification" in window) {
-		Notification.requestPermission().then(permission => {
-			if (permission === "granted") {
-				new Notification(msg);
-			}
-		});
-	} else {
-		console.log("Browser does not support notifications.");
-	}
-}
+import notifyUserChange from "./notifyUserChange.js";
+import isDefined from "./isDefined.js";
 
 export default class Group {
 	constructor(userAuth, groupId) {
@@ -205,18 +194,12 @@ export default class Group {
 			await this.userAuth.filetable.delete(message.message,message.messageId);
 		}
 		for (const message of newMessages) {
-			if (!await this.userAuth.filetable.inc(message.message,message.messageId)) {
-				//await this.userAuth.filetable.requestFile(hash, newvar.users, file => console.log(file))
-			}
+			await this.userAuth.filetable.inc(message.message,message.messageId);
 		}
 
 		newUsers.forEach(user => notifyUserChange(`User ${user} has entered ${newvar.name}`));
 		removedUsers.forEach(user => notifyUserChange(`User ${user} has left ${newvar.name}`));
 		newMessages.forEach(msg => notifyUserChange(`New Message from ${msg.name} in ${newvar.name}`));
-		console.log("Added messages:", newMessages);
-		console.log("Removed messages:", removedMessages);
-		console.log("Added users:", newUsers);
-		console.log("Removed users:", removedUsers);
 		await this.userAuth.getGroups();
 	}
 	async onOnline(user, id) {

@@ -1,4 +1,4 @@
-import { isDefined } from "./utils.js";
+import isDefined from "./isDefined.js";
 import { Base64ToBlob } from "./Blob64.js";
 
 export default class FileTable {
@@ -38,9 +38,6 @@ export default class FileTable {
 	async verify(hash, value) {
 		return hash === await this.hash(value);
 	}
-	//dump the ids in all the place,
-	//undefined not :
-	//write code 
 	
 	async requestFile(hash, users,messageId, onDone = async () => { }) {
 		const ref = crypto.randomUUID();
@@ -53,8 +50,8 @@ export default class FileTable {
 						data.file = await Base64ToBlob(data.file);
 					}
 					if (await this.verify(data.hash, data.file)) {
-						await this.add(data.file,messageId);
-						await this.inc(data.hash,messageId);
+						await this.add(data.file, messageId);
+						await this.inc(data.hash, messageId);
 						await onDone(data.file);
 					}
 				}, ref);
@@ -89,7 +86,6 @@ export default class FileTable {
 	async inc(hash, id) {
 		const data = await this.db.get("files", hash);
 		if (isDefined(data)) { 
-			data.count += 1;
 			data.ref.add(id);
 			await this.db.put("files", data, hash);
 			return true;
@@ -98,7 +94,7 @@ export default class FileTable {
 	}
 	async has(hash) {
 		const data = await this.db.get("files", hash);
-		return isDefined(data) && data.count > 0;
+		return isDefined(data) && data.ref.size > 0;
 	}
 	async delete(hash, id) {
 		const data = await this.db.get("files", hash);

@@ -1,8 +1,7 @@
 import Hide from "./Hide.jsx";
 import { useState, useEffect } from "react";
 import { useUser } from "./UserProvider.jsx";
-import { isDefined } from "../utils.js";
-
+import isDefined from "../isDefined.js";
 
 export default function MessageBox({ message, onThread, onDelete, recpt }) {
 	const user = useUser();
