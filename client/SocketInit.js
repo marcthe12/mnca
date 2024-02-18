@@ -32,7 +32,7 @@ export default class SocketInit {
 
 		if (this.reconnectionAttempts === 0) {
 			setTimeout(() => {
-				if (this.checkStatus() === "offline") {
+				if (this.checkStatus() === "Offline") {
 					this.reconnect();
 				}
 			}, 10 * 1000);

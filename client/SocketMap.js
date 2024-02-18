@@ -77,7 +77,7 @@ export default class SocketMap {
 					if (this.receivedChunks.has(message.id)) {
 						await this.receivedChunks.get(message.id)(
 							message,
-							() => this.callbackMap.delete(message.id)
+							() => this.receivedChunks.delete(message.id)
 						);
 					} else {
 						const data = [];

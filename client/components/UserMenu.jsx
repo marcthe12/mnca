@@ -13,12 +13,13 @@ export default function UserMenu({ onGroupCreate }) {
 		setShowCreateGroupModal
 	] = useState(false);
 	const [showPeersConnectedModal, setShowPeersConnectedModal] = useState(false);
-	const [status, setStatus] = useState("offline"); // Initialize status as 'offline'
+	const [status, setStatus] = useState("Offline"); // Initialize status as 'offline'
 	//when the status changes
 	useEffect(() => {
 		if (isDefined(user?.connect)) {
 			user.connect.onChange = values => setStatus(values);
-			user.connect.handleChange() ?? []
+			user.connect.handleChange()
+			console.log(user.connect)
 		}
 		return () => {
 			if(isDefined(user?.connect)){
