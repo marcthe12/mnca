@@ -12,7 +12,6 @@ export default function MainArea() {
 	async function GroupAddHandler(group) {
 		user.createGroup(group);
 	}
-
 	useEffect(
 		() => {
 			user.onGroupChange = (grouplist) => setGroups(grouplist);
@@ -21,21 +20,31 @@ export default function MainArea() {
 		},
 		[user]
 	);
-
+	  
 	return (
 		<>
-			<div className="bg-primary-bg text-primary-text w-1/4">
-				<UserMenu onGroupCreate={GroupAddHandler}></UserMenu>
-				<nav>
-					{groups.map((tab, index) => <TabButton key={index} onClick={() => setActiveTab(index)} group={tab}></TabButton>)}
-				</nav>
-			</div>
-			<div className="w-3/4">
-				{groups.map((tab, index) => <MainChatArea group={tab} isactive={index == activeTab} key={index} />)}
+		<div className="bg-primary-bg text-primary-text flex flex-col w-40 sm:w-80" >
+		<UserMenu onGroupCreate={GroupAddHandler}></UserMenu>
+		<nav className="overflow-y-auto flex-grow">
+			{groups.map((tab, index) => (
+				<TabButton
+					key={index}
+					onClick={() => setActiveTab(index)}
+					group={tab}
+				></TabButton>
+			))}
+		</nav>
+	</div>
+			<div className="flex flex-col flex-grow">
+				{groups.map((tab, index) => (
+					<MainChatArea
+						group={tab}
+						isactive={index == activeTab}
+						key={index}
+					/>
+				))}
 			</div>
 		</>
 	);
 
 }
-
-

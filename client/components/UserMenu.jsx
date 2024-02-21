@@ -13,7 +13,7 @@ export default function UserMenu({ onGroupCreate }) {
 		setShowCreateGroupModal
 	] = useState(false);
 	const [showPeersConnectedModal, setShowPeersConnectedModal] = useState(false);
-	const [status, setStatus] = useState("Offline"); // Initialize status as 'offline'
+	const [status, setStatus] = useState("Online"); // Initialize status as 'offline'
 	//when the status changes
 	useEffect(() => {
 		if (isDefined(user?.connect)) {
@@ -57,7 +57,7 @@ export default function UserMenu({ onGroupCreate }) {
 		<div className="flex items-center justify-between px-4 py-2 bg-secondary-bg shadow-md">
 			<div className="flex items-center space-x-4">
 				<div>
-					<p className="font-semibold">{user.data.body.user}</p>
+					<p className="font-semibold ">{user.data.body.user}</p>
 					<p className="text-lime-50">{status}</p>
 				</div>
 			</div>

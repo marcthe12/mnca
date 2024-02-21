@@ -34,8 +34,9 @@ function generateHTML(manifest) {
 		<script type="module" src="http://localhost:5173/client/main.jsx"></script>
 		`;
 	}
-	return `<!DOCTYPE html><html lang=en><head><meta charset=utf8>
-		<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>MNCA</title>${files}</head></html>`;
+	return `<!DOCTYPE html><html lang=en><head><meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>MNCA</title><meta name="description" content="MNCA, distributed group chat">${files}</head></html>`;
 }
 
 
