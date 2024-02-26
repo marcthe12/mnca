@@ -100,9 +100,6 @@ export default function GroupInfo({ onClose, group }) {
 		await user.deleteGroupCall(userId, group.groupId);
 	}
 
-	function gDelete() {
-		user.deleteGroup(group.groupId);
-	}
 
 	return (
 		<div className="p-4 space-y-4">
@@ -144,12 +141,6 @@ export default function GroupInfo({ onClose, group }) {
 						className="flex-1 px-4 py-2 bg-primary-bg text-white rounded-l-md hover:bg-primary-dark"
 					>
 						Close
-					</button>
-					<button
-						onClick={gDelete}
-						className="flex-1 px-4 py-2 bg-delete-bg text-white rounded-r-md hover:bg-primary-dark"
-					>
-						Delete
 					</button>
 				</div>
 			</div>

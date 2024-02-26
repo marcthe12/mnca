@@ -50,7 +50,7 @@ export default function MainChatArea({ group, isactive }) {
 						<MessageBox key={message.messageId} message={message} onThread={PushToStack} onDelete={msg => user.removeMessage(msg)} recpt={group.users} />
 					)}
 			</div>
-			<div className="grid-row-3 p-4">
+			<div className="grid-row-3 p-2">
 				<SendBox onSend={SendHandler} />
 			</div>
 		</main >

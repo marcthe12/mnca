@@ -20,10 +20,10 @@ export default function MainArea() {
 		},
 		[user]
 	);
-	  
+	  //overflow-auto and resize-x for the below className for resizability.                                        
 	return (
 		<>
-		<div className="bg-primary-bg text-primary-text flex flex-col w-40 sm:w-80" >
+		<div className="bg-primary-bg text-primary-text flex flex-col w-50 sm:w-80 overflow-auto resize-x" >
 		<UserMenu onGroupCreate={GroupAddHandler}></UserMenu>
 		<nav className="overflow-y-auto flex-grow">
 			{groups.map((tab, index) => (
