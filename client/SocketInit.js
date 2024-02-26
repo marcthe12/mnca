@@ -47,7 +47,7 @@ export default class SocketInit {
 	reconnect() {
 		if (this.reconnectionAttempts < this.maxReconnectionAttempts) {
 			const delay = Math.pow(2, this.reconnectionAttempts) * 1000; // milliseconds
-			setTimeout(() => {
+			this.timeout = setTimeout(() => {
 				console.log(`Attempting reconnection (attempt ${this.reconnectionAttempts + 1})...`);
 				this.connect();
 			}, delay);
@@ -150,5 +150,6 @@ export default class SocketInit {
 		this.socketMap.clear();
 		this.result.close();
 		clearInterval(this.interval);
+		clearTimeout(this.timeout);
 	}
 }

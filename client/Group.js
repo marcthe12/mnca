@@ -112,13 +112,18 @@ export default class Group {
 			version: event.version.state
 		}, ...users);
 	}
-	async pull({ id, version, events }) {
-		if (events !== undefined) {
-			this.version.merge(version);
-			await this.db.put("groupVersion", this.version.state, this.groupId);
-			await this.store(...events);
-		}
+	async pull({ id, version, events=[] }) {
 		this.version ??= new VectorClock();
+		events = events.filter(async (event) => {
+			const storedEvents = await this.db.getAllFromIndex("groupLog", "groupIndex", this.groupId) ?? [];
+			return !storedEvents.some(storedEvent => storedEvent.OpId === event.OpId); // Assuming OpId is unique identifier for events
+		});
+		//todo filter out any that are already in our store?
+		if (events.length !== 0) {//add && condition if events are not empty
+			this.version.merge(version);//!!!
+			await this.db.put("groupVersion", this.version.state, this.groupId);//!!!
+			await this.store(...events);//!!!
+		}
 		if (version.compare(this.version) !== "equal") { //if its a greater version update that?
 			const items = await this.db.getAllFromIndex("groupLog", "groupIndex", this.groupId) ?? [];
 			await this.userAuth.connect.socketMap.send({
@@ -134,10 +139,13 @@ export default class Group {
 	}
 	async store(...events) {
 		const old = await this.getValue();
+		console.log(events.length)
 		const transx = this.db.transaction("groupLog", "readwrite");
 		for (const event of events) {
+			console.log("Storing Event", event);
 			await transx.store.add({ ...event, version: event.version.state });
-		}
+		}//marked...
+		console.log("Updated events...")
 		await transx.done;
 		events = await this.db.getAllFromIndex("groupLog", "groupIndex", this.groupId) ?? [];
 		events.sort((a, b) => {
