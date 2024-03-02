@@ -19,7 +19,6 @@ export default function UserMenu({ onGroupCreate }) {
 		if (isDefined(user?.connect)) {
 			user.connect.onChange = values => setStatus(values);
 			user.connect.handleChange()
-			console.log(user.connect)
 		}
 		return () => {
 			if(isDefined(user?.connect)){

@@ -37,7 +37,7 @@ export default function MainChatArea({ group, isactive }) {
 				<Hide show={msgStack.length != 0}>
 					<button className="inline p-2" onClick={PopFromStack}>X</button>
 				</Hide>
-				<button className="inline font-bold cursor-pointer shadow px-3 py-1" onClick={() => ModalOpen()}>{group.name}</button>
+				<button className="inline-block bg-gray-800 hover:bg-gray-700 text-white font-bold text-menu-bg py-1 px-2 rounded-lg shadow-md transition duration-300 ease-in-out" onClick={() => ModalOpen()}>{group.name}</button>
 			</div>
 			<Modal show={isModalOpen}>
 				<GroupInfo group={group} onClose={() => ModalClose()} />

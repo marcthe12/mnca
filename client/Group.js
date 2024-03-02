@@ -21,7 +21,7 @@ export default class Group {
 		await this.userAuth.connect.socketMap.sendAllClients({
 			groupId: this.groupId,
 			id: this.replicaId,
-			version: this.version.state
+			version: this.version.state ?? []
 		}, ...users);
 	}
 	async refresh() {
@@ -29,7 +29,7 @@ export default class Group {
 		await this.userAuth.connect.socketMap.sendAllClients({
 			groupId: this.groupId,
 			id: this.replicaId,
-			version: this.version.state
+			version: this.version.state ?? []
 		}, ...users);
 	}
 	async initialize(users) {
@@ -41,7 +41,7 @@ export default class Group {
 			//until successful
 			groupId: this.groupId,
 			id: this.replicaId,
-			version: this.version.state
+			version: this.version.state ?? []
 		}, ...users);
 
 	}
@@ -64,8 +64,9 @@ export default class Group {
 
 	async getState() {
 		const groupstate = await this.db.get("groupState", this.groupId);
-		if (isDefined(groupstate)) {
-			return groupstate;
+		const groupversion = new VectorClock(await this.db.get("groupVersion", this.groupId));
+		if (isDefined(groupstate)&& groupversion.count!=0) {
+			return groupstate; // when there are no logs, no version but there is state...
 		}
 		else {
 			const newstate = {
@@ -80,6 +81,7 @@ export default class Group {
 				const users = await this.db.get("groupUserHint", this.groupId) ?? [];
 				users.forEach(user => newstate.users.set(user, user));
 			}
+			
 			return newstate;
 		}
 	}
@@ -114,14 +116,14 @@ export default class Group {
 	}
 	async pull({ id, version, events=[] }) {
 		this.version ??= new VectorClock();
-		events = events.filter(async (event) => {
-			const storedEvents = await this.db.getAllFromIndex("groupLog", "groupIndex", this.groupId) ?? [];
-			return !storedEvents.some(storedEvent => storedEvent.OpId === event.OpId); // Assuming OpId is unique identifier for events
-		});
+		const storedEvents = await this.db.getAllFromIndex("groupLog", "groupIndex", this.groupId) ?? [];
+		events = events.filter(event => !storedEvents.some(storedEvent => storedEvent.OpId === event.OpId)); // Assuming OpId is unique identifier for events
+		
 		//todo filter out any that are already in our store?
 		if (events.length !== 0) {//add && condition if events are not empty
 			this.version.merge(version);//!!!
 			await this.db.put("groupVersion", this.version.state, this.groupId);//!!!
+			console.log("storing events");
 			await this.store(...events);//!!!
 		}
 		if (version.compare(this.version) !== "equal") { //if its a greater version update that?
@@ -129,7 +131,7 @@ export default class Group {
 			await this.userAuth.connect.socketMap.send({
 				groupId: this.groupId,
 				id: this.replicaId,
-				version: this.version.state,
+				version: this.version.state ?? [],
 				events: items.filter(event => {
 					const time = new VectorClock(event.version);
 					return new Set(["concurrent", "greater"]).has(time.compare(version));
@@ -140,6 +142,7 @@ export default class Group {
 	async store(...events) {
 		const old = await this.getValue();
 		console.log(events.length)
+		console.log(events)
 		const transx = this.db.transaction("groupLog", "readwrite");
 		for (const event of events) {
 			console.log("Storing Event", event);
@@ -215,7 +218,7 @@ export default class Group {
 			await this.userAuth.connect.socketMap.send({
 				groupId: this.groupId,
 				id: this.replicaId,
-				version: this.version.state
+				version: this.version.state ??[]
 			}, id);
 		}
 	}
@@ -239,3 +242,4 @@ export default class Group {
 		await this.event("removeMessage", { uuids });
 	}
 }
+ 

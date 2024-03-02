@@ -1,6 +1,7 @@
 import VectorClock from "./VectorClock";
 import Group from "./Group.js";
 import waitUntilMapValue from "./waitUntilMapValue.js";
+import isDefined from "./isDefined";
 
 export default class GroupMap {
 	constructor(userAuth) {
@@ -53,9 +54,9 @@ export default class GroupMap {
 			version: event.version.state
 		}, this.userAuth.data.body.user);
 	}
-	async pull({ id, groupId, version, events }) {
+	async pull({ id, groupId, version, events=[] }) {
 		version = new VectorClock(version);
-		events = events?.map(event => {
+		events = events.map(event => {
 			event.version = new VectorClock(event.version);
 			event.date = new Date(event.date);
 			if (event.message !== undefined) {
@@ -63,11 +64,14 @@ export default class GroupMap {
 			}
 			return event;
 		});
-		if (groupId !== undefined) {
+		
+		if (isDefined(groupId)) {
 			await this.map.get(groupId)?.pull({ id, version, events });
 			return;
 		}
-		if (events !== undefined) {
+		const storedEvents = await this.db.getAllFromIndex("groupLog", "groupIndex", this.groupId) ?? [];
+		events = events.filter(event => !storedEvents.some(storedEvent => storedEvent.OpId === event.OpId));
+		if (events.length !== 0) {
 			this.version.merge(version);
 			await this.db.put("groupMapVersion", this.version.state, 1);
 			await this.store(...events);
