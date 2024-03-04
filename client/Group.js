@@ -118,14 +118,15 @@ export default class Group {
 		this.version ??= new VectorClock();
 		const storedEvents = await this.db.getAllFromIndex("groupLog", "groupIndex", this.groupId) ?? [];
 		events = events.filter(event => !storedEvents.some(storedEvent => storedEvent.OpId === event.OpId)); // Assuming OpId is unique identifier for events
-		
-		//todo filter out any that are already in our store?
 		if (events.length !== 0) {//add && condition if events are not empty
-			this.version.merge(version);//!!!
-			await this.db.put("groupVersion", this.version.state, this.groupId);//!!!
+			
 			console.log("storing events");
 			await this.store(...events);//!!!
-		}
+			this.version.merge(version);//!!!
+			await this.db.put("groupVersion", this.version.state, this.groupId);//!!!
+		} //2 things to check
+		// 1. do we use this.version in store
+		//125 and 126 critical
 		if (version.compare(this.version) !== "equal") { //if its a greater version update that?
 			const items = await this.db.getAllFromIndex("groupLog", "groupIndex", this.groupId) ?? [];
 			await this.userAuth.connect.socketMap.send({
@@ -143,11 +144,11 @@ export default class Group {
 		const old = await this.getValue();
 		console.log(events.length)
 		console.log(events)
-		const transx = this.db.transaction("groupLog", "readwrite");
+		const transx = this.db.transaction("groupLog", "readwrite");// deadly
 		for (const event of events) {
 			console.log("Storing Event", event);
 			await transx.store.add({ ...event, version: event.version.state });
-		}//marked...
+		}//marked...critical
 		console.log("Updated events...")
 		await transx.done;
 		events = await this.db.getAllFromIndex("groupLog", "groupIndex", this.groupId) ?? [];

@@ -69,13 +69,14 @@ export default class GroupMap {
 			await this.map.get(groupId)?.pull({ id, version, events });
 			return;
 		}
+		//crit start
 		const storedEvents = await this.db.getAllFromIndex("groupLog", "groupIndex", this.groupId) ?? [];
 		events = events.filter(event => !storedEvents.some(storedEvent => storedEvent.OpId === event.OpId));
 		if (events.length !== 0) {
+			await this.store(...events);
 			this.version.merge(version);
 			await this.db.put("groupMapVersion", this.version.state, 1);
-			await this.store(...events);
-		}
+		}// crit end
 		if (version.compare(this.version) !== "equal") { //if its a greater version update that?
 			const items = await this.db.getAll("groupMapLog") ?? [];
 
