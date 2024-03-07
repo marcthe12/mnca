@@ -1,6 +1,6 @@
 {
   "name": "mnca",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "MNCA is not a chat app",
   "private": true,
   "main": "index.js",
