@@ -44,7 +44,7 @@ export default function SendBox({ onSend }) {
 				<PaperClipIcon className="w-7 h-6" />
 			</button>
 			<button className="flex items-center justify-center bg-menu-bg hover:bg-secondary-bg rounded-full px-1 py-1 text-white text-lg font-semibold shadow-md w-12 h-12 " onClick={handleClick}>
-			<PaperAirplaneIcon className="w-7 h-6"></PaperAirplaneIcon>
+				<PaperAirplaneIcon className="w-7 h-6"></PaperAirplaneIcon>
 			</button>
 		</div >
 	);

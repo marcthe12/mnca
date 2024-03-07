@@ -76,7 +76,9 @@ function sendAck(ws, data, timeout, ackid = crypto.randomUUID(),) {
 	});
 }
 
+
 async function sendToUserOneByOne(user, id, action, data = {}) {
+
 	const sockets = userSessions.getUserSockets(user) ?? [];
 	for (const recvClient of sockets) {
 		if (recvClient.id !== id) {
@@ -87,13 +89,14 @@ async function sendToUserOneByOne(user, id, action, data = {}) {
 			}
 		}
 	}
+	setTimeout(()=> sendToUserOneByOne(user, id, action, data),30000)
 }
 
 const var1 = {};
 
-export default function(server) {
+export default function (server) {
 	const wss = new WebSocketServer({ server });
-	wss.on("connection", async function(ws, req) {
+	wss.on("connection", async function (ws, req) {
 		const searchParams = new URL(req.url, `ws://${req.headers.host}`).searchParams;
 		const token = searchParams.get("token");
 		const id = searchParams.get("id");
@@ -130,12 +133,12 @@ export default function(server) {
 			}, 30000);
 		});
 
-		ws.on("close", function(code, reason) {
+		ws.on("close", function (code, reason) {
 			subList.clear();
 			userSessions.remove(socket);
 			console.error(code, reason);
 		});
-		ws.on("message", async function(message) {
+		ws.on("message", async function (message) {
 			const msg = JSON.parse(message);
 			if (msg.ref && var1[msg.ref]) {
 				await var1[msg.ref](msg, () => delete var1[msg.ref]);

@@ -119,8 +119,6 @@ export default class Group {
 		const storedEvents = await this.db.getAllFromIndex("groupLog", "groupIndex", this.groupId) ?? [];
 		events = events.filter(event => !storedEvents.some(storedEvent => storedEvent.OpId === event.OpId)); // Assuming OpId is unique identifier for events
 		if (events.length !== 0) {//add && condition if events are not empty
-			
-			console.log("storing events");
 			await this.store(...events);//!!!
 			this.version.merge(version);//!!!
 			await this.db.put("groupVersion", this.version.state, this.groupId);//!!!
@@ -142,14 +140,12 @@ export default class Group {
 	}
 	async store(...events) {
 		const old = await this.getValue();
-		console.log(events.length)
-		console.log(events)
 		const transx = this.db.transaction("groupLog", "readwrite");// deadly
 		for (const event of events) {
-			console.log("Storing Event", event);
+			
 			await transx.store.add({ ...event, version: event.version.state });
 		}//marked...critical
-		console.log("Updated events...")
+	
 		await transx.done;
 		events = await this.db.getAllFromIndex("groupLog", "groupIndex", this.groupId) ?? [];
 		events.sort((a, b) => {

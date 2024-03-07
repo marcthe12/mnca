@@ -41,7 +41,7 @@ export default function MessageBox({ message, onThread, onDelete, recpt }) {
 		URL.revokeObjectURL(blobUrl);
 	}
 	const current_user = name === user.data.body.user;
-	return <section className={`max-w-sm rounded overflow-hidden shadow-lg bg-secondary-bg text-secondary-text m-5 p-4 ${current_user ? "ml-auto" : "mr-auto"
+	return <section className={`max-w-sm max-w rounded overflow-hidden shadow-lg bg-secondary-bg text-secondary-text m-5 p-4 ${current_user ? "ml-auto" : "mr-auto"
 	}`} onClick={() => handleClick()}>
 		<Hide show={menu}>
 			<div className="relative w-full mt-2 w-48 rounded-md shadow-lg bg-menu-bg ring-1 ring-black ring-opacity-5">

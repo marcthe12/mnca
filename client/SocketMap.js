@@ -1,4 +1,5 @@
 import config from "./config.js";
+import waitUntilMapValue from "./waitUntilMapValue.js";
 export default class SocketMap {
 	constructor(conn) {
 		this.mapping = new Map();
@@ -197,10 +198,12 @@ export default class SocketMap {
 		return conn;
 	}
 	registerCall(id, callback, ref = crypto.randomUUID()) {
-		this.mapping.get(id).callbackMap.set(ref, callback);
+		const mapid = this.mapping.get(id)
+		mapid.callbackMap.set(ref, callback);
 	}
 	async send(data, id) {
-		await this.mapping.get(id).send(data);
+		const mapid = await waitUntilMapValue(this.mapping,id)
+		await mapid.send(data);//production...err
 	}
 	registerCallAll(callback, ref, ...users) {
 		this.getAllClients(...users).forEach(client => client.callbackMap.set(ref, callback));

@@ -1,7 +1,7 @@
 export default function waitUntilMapValue(map, key) {
 	return new Promise((resolve) => {
 		const checkValue = () => {
-			if (map.get(key) !== undefined) {
+			if (map.has(key)) {
 				resolve(map.get(key));
 			} else {
 				setTimeout(checkValue, 100);

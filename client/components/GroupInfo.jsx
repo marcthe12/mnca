@@ -25,6 +25,7 @@ function UserList({ users, onAdd, onRemove }) {
 	const [errorMsg, setErrorMsg] = useState("");
 	const [status, setStatus] = useState([]);
 	const user = useUser();
+	//user.length>=1, it can come 0 AudioScheduledSourceNode.
 
 	useEffect(() => {
 		setStatus(user.connect.socketMap.values);
@@ -64,11 +65,11 @@ function UserList({ users, onAdd, onRemove }) {
 		<ul>
 			{[...users]
 				.map((user, index) =>
-					(<UserItem 
-						key={index} 
-						user={user} 
-						connection={status.filter(row => row.user === user).length} 
-						onDelete={() => removeUser(user)} 
+					(<UserItem
+						key={index}
+						user={user}
+						connection={status.filter(row => row.user === user).length}
+						onDelete={() => removeUser(user)}
 					/>)
 				)
 			}
@@ -79,7 +80,7 @@ function UserList({ users, onAdd, onRemove }) {
 export default function GroupInfo({ onClose, group }) {
 	const [name, setName] = useState(group.name);
 	const user = useUser();
-
+	
 	async function copyGroupIdToClipboard() {
 		await navigator.clipboard.writeText(group.groupId);
 	}
@@ -100,7 +101,10 @@ export default function GroupInfo({ onClose, group }) {
 		await user.deleteGroupCall(userId, group.groupId);
 	}
 
-
+	function gDelete() {
+		user.deleteGroup(group.groupId);
+	}
+	const hideDeleteButton = group.users.size > 1;
 	return (
 		<div className="p-4 space-y-4">
 			<div className="grid grid-cols-[1fr,auto] gap-4">
@@ -141,6 +145,13 @@ export default function GroupInfo({ onClose, group }) {
 						className="flex-1 px-4 py-2 bg-primary-bg text-white rounded-l-md hover:bg-primary-dark"
 					>
 						Close
+					</button>
+					<button
+						onClick={gDelete}
+						className={"flex-1 px-4 py-2 bg-delete-bg text-white rounded-r-md hover:bg-primary-dark "}
+						disabled={hideDeleteButton}
+					>
+                        Delete
 					</button>
 				</div>
 			</div>
